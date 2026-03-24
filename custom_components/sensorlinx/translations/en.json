@@ -1,0 +1,21 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Connect to SensorLinx",
+        "description": "Enter your HBX SensorLinx account credentials.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
+      }
+    },
+    "error": {
+      "invalid_auth": "Invalid email or password.",
+      "cannot_connect": "Unable to connect to SensorLinx. Check your network and try again."
+    },
+    "abort": {
+      "already_configured": "This SensorLinx account is already configured."
+    }
+  }
+}

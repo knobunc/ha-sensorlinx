@@ -1,0 +1,11 @@
+{
+  "domain": "sensorlinx",
+  "name": "HBX SensorLinx",
+  "codeowners": ["@knobunc"],
+  "config_flow": true,
+  "documentation": "https://github.com/knobunc/ha-sensorlinx",
+  "integration_type": "hub",
+  "iot_class": "cloud_polling",
+  "requirements": ["sensorlinx>=0.1.0"],
+  "version": "0.1.0"
+}
