@@ -6,8 +6,8 @@
   "documentation": "https://github.com/knobunc/ha-sensorlinx",
   "integration_type": "hub",
   "iot_class": "cloud_polling",
-  "requirements": ["pysensorlinx>=0.1.9"],
   "issue_tracker": "https://github.com/knobunc/ha-sensorlinx/issues",
   "quality_scale": "gold",
+  "requirements": ["pysensorlinx>=0.1.9"],
   "version": "0.6.0"
 }
