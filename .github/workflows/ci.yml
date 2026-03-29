@@ -22,7 +22,7 @@ jobs:
       - name: Install dependencies
         run: uv pip install -r requirements_test.txt --system
       - name: Run tests
-        run: pytest -q --cov=custom_components/sensorlinx --cov-report=term-missing
+        run: pytest
       - name: Run mypy
         run: mypy custom_components/sensorlinx
 
