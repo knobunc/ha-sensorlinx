@@ -1,17 +1,24 @@
 from __future__ import annotations
 
+import logging
+
 from homeassistant.components.binary_sensor import (
     BinarySensorDeviceClass,
     BinarySensorEntity,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.core import HomeAssistant
-from homeassistant.helpers.entity import DeviceInfo
+from homeassistant.const import EntityCategory
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
-from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MANUFACTURER
+from .const import DOMAIN
 from .coordinator import SensorLinxCoordinator
+from .entity import SensorLinxBaseEntity
+
+_LOGGER = logging.getLogger(__name__)
+
+PARALLEL_UPDATES = 0
 
 
 async def async_setup_entry(
@@ -19,103 +26,391 @@ async def async_setup_entry(
     entry: ConfigEntry,
     async_add_entities: AddEntitiesCallback,
 ) -> None:
+    """Set up SensorLinx binary sensor entities from a config entry."""
     coordinator: SensorLinxCoordinator = hass.data[DOMAIN][entry.entry_id]
-    entities: list[BinarySensorEntity] = []
 
-    for building_id, building_data in coordinator.data.items():
-        for sync_code in building_data["devices"]:
-            entities.append(
-                SensorLinxConnectedSensor(coordinator, entry.entry_id, building_id, sync_code)
-            )
+    @callback
+    def _async_add_binary_sensors() -> None:
+        """Add binary sensor entities for any devices not yet in the entity registry."""
+        ent_reg = er.async_get(hass)
+        new_entities: list[BinarySensorEntity] = []
 
-            # One binary sensor per demand channel (e.g. heating, cooling)
-            raw = building_data["devices"][sync_code]["device"].raw
-            for idx, demand in enumerate(raw.get("demands") or []):
-                entities.append(
-                    SensorLinxDemandActiveSensor(
-                        coordinator,
-                        entry.entry_id,
-                        building_id,
-                        sync_code,
-                        idx,
-                        demand.get("title") or f"Demand {idx + 1}",
+        def _needs(uid: str) -> bool:
+            return not ent_reg.async_get_entity_id("binary_sensor", DOMAIN, uid)
+
+        for building_id, building_data in coordinator.data.items():
+            for sync_code, device_data in building_data["devices"].items():
+                device = device_data["device"]
+
+                # Cloud connectivity
+                if _needs(f"{sync_code}_connected"):
+                    new_entities.append(
+                        SensorLinxConnectedSensor(coordinator, building_id, sync_code)
                     )
-                )
 
-    async_add_entities(entities)
+                # Demand channels (heat, cool, etc.)
+                for idx, demand in enumerate(device.get("demands") or []):
+                    if _needs(f"{sync_code}_demand_{idx}"):
+                        new_entities.append(
+                            SensorLinxDemandActiveSensor(
+                                coordinator,
+                                building_id,
+                                sync_code,
+                                idx,
+                                demand.get("title") or f"Demand {idx + 1}",
+                            )
+                        )
+
+                # Heat pump stages
+                for idx, stage in enumerate(device.get("stages") or []):
+                    if stage.get("enabled") and _needs(f"{sync_code}_stage_{idx}"):
+                        new_entities.append(
+                            SensorLinxStageBinarySensor(
+                                coordinator,
+                                building_id,
+                                sync_code,
+                                idx,
+                                stage.get("title") or f"Stage {idx + 1}",
+                            )
+                        )
+
+                # Backup heating
+                backup = device.get("backup")
+                if backup and backup.get("enabled") and _needs(f"{sync_code}_backup"):
+                    new_entities.append(
+                        SensorLinxBackupBinarySensor(
+                            coordinator, building_id, sync_code
+                        )
+                    )
+
+                # Pumps
+                for idx, pump in enumerate(device.get("pumps") or []):
+                    if _needs(f"{sync_code}_pump_{idx}"):
+                        new_entities.append(
+                            SensorLinxPumpBinarySensor(
+                                coordinator,
+                                building_id,
+                                sync_code,
+                                idx,
+                                pump.get("title") or f"Pump {idx + 1}",
+                            )
+                        )
+
+                # Reversing valve
+                if device.get("reversingValve") is not None and _needs(
+                    f"{sync_code}_reversing_valve"
+                ):
+                    new_entities.append(
+                        SensorLinxReversingValveBinarySensor(
+                            coordinator, building_id, sync_code
+                        )
+                    )
+
+                # Relays
+                for idx in range(len(device.get("relays") or [])):
+                    if _needs(f"{sync_code}_relay_{idx}"):
+                        new_entities.append(
+                            SensorLinxRelayBinarySensor(
+                                coordinator, building_id, sync_code, idx
+                            )
+                        )
+
+                # Weather shutdowns (warm / cold)
+                for wsd_key, wsd_data in (device.get("wsd") or {}).items():
+                    if _needs(f"{sync_code}_wsd_{wsd_key}"):
+                        title = wsd_data.get("title") or wsd_key
+                        new_entities.append(
+                            SensorLinxWeatherShutdownBinarySensor(
+                                coordinator, building_id, sync_code, wsd_key, title
+                            )
+                        )
+
+        if new_entities:
+            _LOGGER.debug(
+                "Adding %d new binary sensor entity/entities", len(new_entities)
+            )
+            async_add_entities(new_entities)
+
+    _async_add_binary_sensors()
+    entry.async_on_unload(coordinator.async_add_listener(_async_add_binary_sensors))
 
 
-def _device_info(coordinator: SensorLinxCoordinator, building_id: str, sync_code: str) -> DeviceInfo:
-    device = coordinator.data[building_id]["devices"][sync_code]["device"]
-    building = coordinator.data[building_id]["building"]
-    return DeviceInfo(
-        identifiers={(DOMAIN, sync_code)},
-        name=device.name or sync_code,
-        model=device.device_type,
-        sw_version=device.firmware_version,
-        manufacturer=MANUFACTURER,
-        suggested_area=building.name,
-    )
+def _safe_bool(value: bool | int | None) -> bool | None:
+    """Return bool(value) if value is not None, else None."""
+    return bool(value) if value is not None else None
 
 
-class SensorLinxConnectedSensor(CoordinatorEntity[SensorLinxCoordinator], BinarySensorEntity):
+def _get_list_item(lst: list[dict | bool], index: int) -> dict | bool | None:
+    """Return lst[index] if in bounds, else None."""
+    return lst[index] if index < len(lst) else None
+
+
+class SensorLinxConnectedSensor(SensorLinxBaseEntity, BinarySensorEntity):
     """Whether the device is currently connected to the cloud."""
 
+    _attr_translation_key = "connected"
     _attr_device_class = BinarySensorDeviceClass.CONNECTIVITY
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
         coordinator: SensorLinxCoordinator,
-        entry_id: str,
         building_id: str,
         sync_code: str,
     ) -> None:
-        super().__init__(coordinator)
-        self._building_id = building_id
-        self._sync_code = sync_code
-        self._attr_unique_id = f"{entry_id}_{sync_code}_connected"
-        device = coordinator.data[building_id]["devices"][sync_code]["device"]
-        self._attr_name = f"{device.name or sync_code} Connected"
-        self._attr_device_info = _device_info(coordinator, building_id, sync_code)
+        """Initialise the connectivity sensor."""
+        super().__init__(coordinator, building_id, sync_code)
+        self._attr_unique_id = f"{sync_code}_connected"
 
     @property
     def is_on(self) -> bool | None:
-        raw = self.coordinator.data[self._building_id]["devices"][self._sync_code]["device"].raw
-        connected = raw.get("connected")
-        if connected is None:
+        """Return True when the device reports it is connected."""
+        device = self._get_device()
+        if device is None:
             return None
-        return bool(connected)
+        connected = device.get("connected")
+        return bool(connected) if connected is not None else None
 
 
-class SensorLinxDemandActiveSensor(CoordinatorEntity[SensorLinxCoordinator], BinarySensorEntity):
-    """Whether a specific demand channel (e.g. Heat, Cool) is active."""
+class SensorLinxDemandActiveSensor(SensorLinxBaseEntity, BinarySensorEntity):
+    """Whether a demand channel (e.g. Heat, Cool) is active."""
 
     _attr_device_class = BinarySensorDeviceClass.RUNNING
 
     def __init__(
         self,
         coordinator: SensorLinxCoordinator,
-        entry_id: str,
         building_id: str,
         sync_code: str,
         index: int,
         title: str,
     ) -> None:
-        super().__init__(coordinator)
-        self._building_id = building_id
-        self._sync_code = sync_code
+        """Initialise the demand-active sensor for a specific channel index."""
+        super().__init__(coordinator, building_id, sync_code)
         self._index = index
-        self._attr_unique_id = f"{entry_id}_{sync_code}_demand_{index}"
-        device = coordinator.data[building_id]["devices"][sync_code]["device"]
-        self._attr_name = f"{device.name or sync_code} {title}"
-        self._attr_device_info = _device_info(coordinator, building_id, sync_code)
+        self._attr_name = title
+        self._attr_unique_id = f"{sync_code}_demand_{index}"
 
     @property
     def is_on(self) -> bool | None:
-        demands = (
-            self.coordinator.data[self._building_id]["devices"][self._sync_code]["device"]
-            .raw.get("demands") or []
-        )
-        if self._index < len(demands):
-            return bool(demands[self._index].get("activated"))
-        return None
+        """Return True when this demand channel is activated."""
+        device = self._get_device()
+        if device is None:
+            return None
+        demands = device.get("demands") or []
+        item = _get_list_item(demands, self._index)
+        if not isinstance(item, dict):
+            return None
+        return _safe_bool(item.get("activated"))
+
+
+class SensorLinxStageBinarySensor(SensorLinxBaseEntity, BinarySensorEntity):
+    """Whether a heat pump stage is running."""
+
+    _attr_device_class = BinarySensorDeviceClass.RUNNING
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+        index: int,
+        title: str,
+    ) -> None:
+        """Initialise the stage binary sensor for a specific stage index."""
+        super().__init__(coordinator, building_id, sync_code)
+        self._index = index
+        self._attr_name = title
+        self._attr_unique_id = f"{sync_code}_stage_{index}"
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return True when this heat pump stage is activated."""
+        device = self._get_device()
+        if device is None:
+            return None
+        stages = device.get("stages") or []
+        item = _get_list_item(stages, self._index)
+        if not isinstance(item, dict):
+            return None
+        return _safe_bool(item.get("activated"))
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return run_time as an extra attribute when available."""
+        device = self._get_device()
+        if device is None:
+            return {}
+        stages = device.get("stages") or []
+        item = _get_list_item(stages, self._index)
+        if not isinstance(item, dict):
+            return {}
+        run_time = item.get("runTime")
+        return {"run_time": run_time} if run_time is not None else {}
+
+
+class SensorLinxBackupBinarySensor(SensorLinxBaseEntity, BinarySensorEntity):
+    """Whether the backup heating system is running."""
+
+    _attr_translation_key = "backup_heat"
+    _attr_device_class = BinarySensorDeviceClass.RUNNING
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+    ) -> None:
+        """Initialise the backup heat binary sensor."""
+        super().__init__(coordinator, building_id, sync_code)
+        self._attr_unique_id = f"{sync_code}_backup"
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return True when backup heating is activated."""
+        device = self._get_device()
+        if device is None:
+            return None
+        backup = device.get("backup")
+        if not isinstance(backup, dict):
+            return None
+        return _safe_bool(backup.get("activated"))
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return run_time as an extra attribute when available."""
+        device = self._get_device()
+        if device is None:
+            return {}
+        backup = device.get("backup") or {}
+        run_time = backup.get("runTime")
+        return {"run_time": run_time} if run_time is not None else {}
+
+
+class SensorLinxPumpBinarySensor(SensorLinxBaseEntity, BinarySensorEntity):
+    """Whether a pump is running."""
+
+    _attr_device_class = BinarySensorDeviceClass.RUNNING
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+        index: int,
+        title: str,
+    ) -> None:
+        """Initialise the pump binary sensor for a specific pump index."""
+        super().__init__(coordinator, building_id, sync_code)
+        self._index = index
+        self._attr_name = title
+        self._attr_unique_id = f"{sync_code}_pump_{index}"
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return True when this pump is activated."""
+        device = self._get_device()
+        if device is None:
+            return None
+        pumps = device.get("pumps") or []
+        item = _get_list_item(pumps, self._index)
+        if not isinstance(item, dict):
+            return None
+        return _safe_bool(item.get("activated"))
+
+
+class SensorLinxReversingValveBinarySensor(SensorLinxBaseEntity, BinarySensorEntity):
+    """Whether the reversing valve is activated (cooling mode)."""
+
+    _attr_translation_key = "reversing_valve"
+    _attr_icon = "mdi:valve"
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+    ) -> None:
+        """Initialise the reversing valve binary sensor."""
+        super().__init__(coordinator, building_id, sync_code)
+        self._attr_unique_id = f"{sync_code}_reversing_valve"
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return True when the reversing valve is activated."""
+        device = self._get_device()
+        if device is None:
+            return None
+        rv = device.get("reversingValve")
+        if not isinstance(rv, dict):
+            return None
+        return _safe_bool(rv.get("activated"))
+
+
+class SensorLinxRelayBinarySensor(SensorLinxBaseEntity, BinarySensorEntity):
+    """Whether a relay output is energised."""
+
+    _attr_translation_key = "relay"
+    _attr_device_class = BinarySensorDeviceClass.POWER
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+        index: int,
+    ) -> None:
+        """Initialise the relay binary sensor for a specific relay index."""
+        super().__init__(coordinator, building_id, sync_code)
+        self._index = index
+        self._attr_translation_placeholders = {"index": str(index + 1)}
+        self._attr_unique_id = f"{sync_code}_relay_{index}"
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return True when this relay is energised.
+
+        Relay values may be plain booleans or dicts with an 'activated' key.
+        """
+        device = self._get_device()
+        if device is None:
+            return None
+        relays = device.get("relays") or []
+        item = _get_list_item(relays, self._index)
+        if item is None:
+            return None
+        if isinstance(item, dict):
+            return _safe_bool(item.get("activated"))
+        return bool(item)
+
+
+class SensorLinxWeatherShutdownBinarySensor(SensorLinxBaseEntity, BinarySensorEntity):
+    """Whether warm or cold weather shutdown is currently active."""
+
+    _attr_icon = "mdi:weather-partly-cloudy"
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+        wsd_key: str,
+        title: str,
+    ) -> None:
+        """Initialise the weather shutdown sensor for a specific wsd key."""
+        super().__init__(coordinator, building_id, sync_code)
+        self._wsd_key = wsd_key
+        self._attr_name = title
+        self._attr_unique_id = f"{sync_code}_wsd_{wsd_key}"
+
+    @property
+    def is_on(self) -> bool | None:
+        """Return True when this weather shutdown condition is active."""
+        device = self._get_device()
+        if device is None:
+            return None
+        wsd = device.get("wsd") or {}
+        entry = wsd.get(self._wsd_key)
+        if not isinstance(entry, dict):
+            return None
+        return _safe_bool(entry.get("activated"))

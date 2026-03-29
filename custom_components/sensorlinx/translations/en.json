@@ -8,6 +8,14 @@
           "email": "Email",
           "password": "Password"
         }
+      },
+      "reauth_confirm": {
+        "title": "Re-authenticate SensorLinx",
+        "description": "The credentials for {email} are no longer valid. Please re-enter them to restore the connection.",
+        "data": {
+          "email": "Email",
+          "password": "Password"
+        }
       }
     },
     "error": {
@@ -15,7 +23,78 @@
       "cannot_connect": "Unable to connect to SensorLinx. Check your network and try again."
     },
     "abort": {
-      "already_configured": "This SensorLinx account is already configured."
+      "already_configured": "This SensorLinx account is already configured.",
+      "reauth_successful": "Re-authentication was successful."
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "SensorLinx Options",
+        "data": {
+          "scan_interval": "Polling interval (seconds)",
+          "timeout": "API timeout (seconds)"
+        },
+        "data_description": {
+          "scan_interval": "How often to poll the SensorLinx API for device updates (30–3600 seconds).",
+          "timeout": "Maximum seconds to wait for an API response before treating it as a failure (10–120 seconds)."
+        }
+      }
+    }
+  },
+  "services": {
+    "set_hvac_mode_priority": {
+      "name": "Set HVAC Mode Priority",
+      "description": "Set the HVAC mode priority (heat, cool, or auto) for a SensorLinx device. The device will prioritise the selected mode when deciding whether to heat or cool.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The SensorLinx device to control."
+        },
+        "mode": {
+          "name": "Mode",
+          "description": "The HVAC mode priority to apply: heat, cool, or auto."
+        }
+      }
+    },
+    "set_permanent_demand": {
+      "name": "Set Permanent Demand",
+      "description": "Enable or disable permanent heating and/or cooling demand for a SensorLinx device. When permanent demand is on, the device always maintains the buffer tank target temperature regardless of external zone demand signals.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The SensorLinx device to control."
+        },
+        "permanent_hd": {
+          "name": "Permanent Heating Demand",
+          "description": "If true, enables permanent heating demand so the device always maintains the hot tank target temperature."
+        },
+        "permanent_cd": {
+          "name": "Permanent Cooling Demand",
+          "description": "If true, enables permanent cooling demand so the device always maintains the cold tank target temperature."
+        }
+      }
+    }
+  },
+  "entity": {
+    "sensor": {
+      "demand": {
+        "name": "Demand"
+      }
+    },
+    "binary_sensor": {
+      "connected": {
+        "name": "Connected"
+      },
+      "backup_heat": {
+        "name": "Backup Heat"
+      },
+      "reversing_valve": {
+        "name": "Reversing Valve"
+      },
+      "relay": {
+        "name": "Relay {index}"
+      }
     }
   }
 }

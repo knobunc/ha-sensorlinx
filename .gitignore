@@ -21,3 +21,6 @@ htmlcov/
 .idea/
 *.swp
 *.swo
+
+# Claude Code editor settings
+.claude/

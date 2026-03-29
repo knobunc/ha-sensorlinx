@@ -1,0 +1,32 @@
+set_hvac_mode_priority:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: sensorlinx
+    mode:
+      required: true
+      example: "heat"
+      selector:
+        select:
+          options:
+            - "heat"
+            - "cool"
+            - "auto"
+
+set_permanent_demand:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: sensorlinx
+    permanent_hd:
+      example: true
+      selector:
+        boolean:
+    permanent_cd:
+      example: false
+      selector:
+        boolean:

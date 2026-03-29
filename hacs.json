@@ -1,4 +1,6 @@
 {
   "name": "HBX SensorLinx",
-  "render_readme": true
+  "render_readme": true,
+  "homeassistant": "2024.1.0",
+  "category": "integration"
 }

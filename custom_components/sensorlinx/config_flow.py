@@ -1,15 +1,33 @@
 from __future__ import annotations
 
-import voluptuous as vol
+import asyncio
+import logging
+from typing import Any
 
+import voluptuous as vol
 from homeassistant import config_entries
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
-from homeassistant.core import HomeAssistant
+from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.selector import (
+    NumberSelector,
+    NumberSelectorConfig,
+    NumberSelectorMode,
+)
+from pysensorlinx import InvalidCredentialsError, LoginError, Sensorlinx
 
-from sensorlinx import SensorLinxClient
-from sensorlinx.exceptions import AuthError, SensorLinxError
+from .const import (
+    CONF_SCAN_INTERVAL,
+    CONF_TIMEOUT,
+    DEFAULT_TIMEOUT,
+    DOMAIN,
+    MAX_SCAN_INTERVAL,
+    MAX_TIMEOUT,
+    MIN_SCAN_INTERVAL,
+    MIN_TIMEOUT,
+    SCAN_INTERVAL,
+)
 
-from .const import DOMAIN
+_LOGGER = logging.getLogger(__name__)
 
 _STEP_SCHEMA = vol.Schema(
     {
@@ -19,13 +37,14 @@ _STEP_SCHEMA = vol.Schema(
 )
 
 
-async def _authenticate(hass: HomeAssistant, email: str, password: str) -> str:
-    """Validate credentials and return JWT token. Raises on failure."""
-    client = SensorLinxClient()
+async def _authenticate(hass: HomeAssistant, email: str, password: str) -> None:
+    """Validate credentials against the SensorLinx API. Raises on failure."""
+    client = Sensorlinx()
     try:
-        return await hass.async_add_executor_job(client.login, email, password)
+        async with asyncio.timeout(DEFAULT_TIMEOUT):
+            await client.login(username=email, password=password)
     finally:
-        await hass.async_add_executor_job(client.close)
+        await client.close()
 
 
 class SensorLinxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -33,19 +52,28 @@ class SensorLinxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    @staticmethod
+    @callback
+    def async_get_options_flow(
+        config_entry: config_entries.ConfigEntry,
+    ) -> SensorLinxOptionsFlowHandler:
+        """Return the options flow handler."""
+        return SensorLinxOptionsFlowHandler()
+
     async def async_step_user(self, user_input: dict | None = None):
+        """Handle the initial user configuration step."""
         errors: dict[str, str] = {}
 
         if user_input is not None:
             try:
-                token = await _authenticate(
+                await _authenticate(
                     self.hass,
                     user_input[CONF_EMAIL],
                     user_input[CONF_PASSWORD],
                 )
-            except AuthError:
+            except InvalidCredentialsError:
                 errors["base"] = "invalid_auth"
-            except SensorLinxError:
+            except (LoginError, RuntimeError, TimeoutError):
                 errors["base"] = "cannot_connect"
             else:
                 await self.async_set_unique_id(user_input[CONF_EMAIL].lower())
@@ -55,7 +83,6 @@ class SensorLinxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     data={
                         CONF_EMAIL: user_input[CONF_EMAIL],
                         CONF_PASSWORD: user_input[CONF_PASSWORD],
-                        "token": token,
                     },
                 )
 
@@ -63,4 +90,100 @@ class SensorLinxConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             step_id="user",
             data_schema=_STEP_SCHEMA,
             errors=errors,
+        )
+
+    async def async_step_reauth(
+        self, entry_data: dict[str, Any]
+    ) -> config_entries.ConfigFlowResult:
+        """Handle re-authentication when credentials become invalid."""
+        return await self.async_step_reauth_confirm()
+
+    async def async_step_reauth_confirm(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Show re-authentication form and update the entry on success."""
+        errors: dict[str, str] = {}
+
+        reauth_entry = self._get_reauth_entry()
+
+        if user_input is not None:
+            email = user_input[CONF_EMAIL]
+            password = user_input[CONF_PASSWORD]
+            try:
+                await _authenticate(self.hass, email, password)
+            except InvalidCredentialsError:
+                errors["base"] = "invalid_auth"
+            except (LoginError, RuntimeError, TimeoutError):
+                errors["base"] = "cannot_connect"
+            else:
+                _LOGGER.debug("Re-authentication successful for %s", email)
+                return self.async_update_reload_and_abort(
+                    reauth_entry,
+                    data={CONF_EMAIL: email, CONF_PASSWORD: password},
+                )
+
+        return self.async_show_form(
+            step_id="reauth_confirm",
+            data_schema=vol.Schema(
+                {
+                    vol.Required(
+                        CONF_EMAIL,
+                        default=reauth_entry.data.get(CONF_EMAIL, ""),
+                    ): str,
+                    vol.Required(CONF_PASSWORD): str,
+                }
+            ),
+            errors=errors,
+            description_placeholders={"email": reauth_entry.data.get(CONF_EMAIL, "")},
+        )
+
+
+class SensorLinxOptionsFlowHandler(config_entries.OptionsFlow):
+    """Handle SensorLinx options (scan interval)."""
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> config_entries.ConfigFlowResult:
+        """Handle the options form."""
+        if user_input is not None:
+            # NumberSelector submits floats from the UI; coerce to int so
+            # entry.options always contains integers regardless of input source.
+            return self.async_create_entry(
+                title="",
+                data={
+                    CONF_SCAN_INTERVAL: int(user_input[CONF_SCAN_INTERVAL]),
+                    CONF_TIMEOUT: int(user_input[CONF_TIMEOUT]),
+                },
+            )
+
+        current_interval = self.config_entry.options.get(
+            CONF_SCAN_INTERVAL, SCAN_INTERVAL
+        )
+        current_timeout = self.config_entry.options.get(CONF_TIMEOUT, DEFAULT_TIMEOUT)
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema(
+                {
+                    vol.Optional(
+                        CONF_SCAN_INTERVAL, default=current_interval
+                    ): NumberSelector(
+                        NumberSelectorConfig(
+                            min=MIN_SCAN_INTERVAL,
+                            max=MAX_SCAN_INTERVAL,
+                            step=1,
+                            unit_of_measurement="s",
+                            mode=NumberSelectorMode.BOX,
+                        )
+                    ),
+                    vol.Optional(CONF_TIMEOUT, default=current_timeout): NumberSelector(
+                        NumberSelectorConfig(
+                            min=MIN_TIMEOUT,
+                            max=MAX_TIMEOUT,
+                            step=1,
+                            unit_of_measurement="s",
+                            mode=NumberSelectorMode.BOX,
+                        )
+                    ),
+                }
+            ),
         )
