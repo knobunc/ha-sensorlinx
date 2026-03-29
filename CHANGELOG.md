@@ -4,6 +4,13 @@ All notable changes to this project will be documented in this file.
 
 ## [Unreleased]
 
+## [0.6.1] - 2026-03-28
+
+### Fixed
+- **CI lint job missing `mypy`** — `mypy` was invoked but not installed in the lint job; added to the `pip install` step alongside `ruff`.
+- **`manifest.json` key order** — hassfest requires `domain`, `name`, then alphabetical; `issue_tracker` moved before `requirements`.
+- **HACS validation errors** — removed disallowed `category` key from `hacs.json`; added `brand/icon.png` at the path HACS expects; set repository description and topics (`home-assistant`, `hacs`, `hacs-integration`, `homeassistant-custom-component`).
+
 ## [0.6.0] - 2026-03-28
 
 ### Added
