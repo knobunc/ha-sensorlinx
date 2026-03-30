@@ -17,10 +17,8 @@ jobs:
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
-      - name: Install uv
-        run: pip install uv
       - name: Install dependencies
-        run: uv pip install -r requirements_test.txt --system --prerelease=allow
+        run: pip install -r requirements_test.txt --pre
       - name: Run tests
         run: pytest
       - name: Run mypy
