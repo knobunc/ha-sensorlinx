@@ -2,7 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
-## [Unreleased]
+## [0.6.2] - 2026-03-31
+
+### Fixed
+- **CI dependency resolution** — replaced `uv` with plain `pip` in the tests job; `uv`'s strict resolver could not reconcile `pysensorlinx`'s `aiohttp` requirement with the pre-release `homeassistant` pins inside `pytest-homeassistant-custom-component`. Split into two install steps: framework first, then integration deps.
+- **`pytest>=8.0` constraint removed** from `requirements_test.txt` — `pytest-homeassistant-custom-component` pins its own pytest version; our constraint caused an unsatisfiable resolution.
+- **`mypy` step removed from CI** — `mypy` was dropped from `requirements_test.txt` to avoid conflicts with `phcc`'s pinned `mypy-dev`; the orphaned CI step now removed.
 
 ## [0.6.1] - 2026-03-28
 
