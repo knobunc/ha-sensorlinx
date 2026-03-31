@@ -61,6 +61,18 @@ async def async_setup_entry(
                                     temp.get("title") or f"Temp {idx + 1}",
                                 )
                             )
+                        if temp.get("target") is not None:
+                            uid = f"{sync_code}_temp_target_{idx}"
+                            if not ent_reg.async_get_entity_id("sensor", DOMAIN, uid):
+                                new_entities.append(
+                                    SensorLinxTemperatureTargetSensor(
+                                        coordinator,
+                                        building_id,
+                                        sync_code,
+                                        idx,
+                                        temp.get("title") or f"Temp {idx + 1}",
+                                    )
+                                )
 
         if new_entities:
             _LOGGER.debug("Adding %d new sensor entity/entities", len(new_entities))
@@ -133,6 +145,69 @@ class SensorLinxTemperatureSensor(SensorLinxBaseEntity, SensorEntity):
         """Return the current temperature reading."""
         t = self._get_temp()
         return t.get("current") if t is not None else None
+
+    @property
+    def extra_state_attributes(self) -> dict:
+        """Return target temperature and activation state as extra attributes.
+
+        target_temperature is converted from the native Fahrenheit API value to
+        the same unit HA uses for native_value so both figures are consistent.
+        """
+        t = self._get_temp()
+        if t is None:
+            return {}
+        attrs: dict = {}
+        if t.get("target") is not None:
+            target: float = t["target"]
+            display_unit = self.hass.config.units.temperature_unit
+            if display_unit != UnitOfTemperature.FAHRENHEIT:
+                target = TemperatureConverter.convert(
+                    target, UnitOfTemperature.FAHRENHEIT, display_unit
+                )
+            attrs["target_temperature"] = round(target, 1)
+        if t.get("activatedState"):
+            attrs["state"] = t["activatedState"]
+        elif "activated" in t:
+            attrs["state"] = "active" if t["activated"] else "idle"
+        return attrs
+
+
+class SensorLinxTemperatureTargetSensor(SensorLinxBaseEntity, SensorEntity):
+    """Target (setpoint) temperature for one temperature channel."""
+
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.FAHRENHEIT
+    _attr_suggested_display_precision = 1
+    _attr_icon = "mdi:thermometer-check"
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+        index: int,
+        title: str,
+    ) -> None:
+        """Initialise the temperature target sensor for a specific channel index."""
+        super().__init__(coordinator, building_id, sync_code)
+        self._index = index
+        self._attr_name = f"{title} Target"
+        self._attr_unique_id = f"{sync_code}_temp_target_{index}"
+
+    def _get_temp(self) -> dict | None:
+        """Return the temperature channel dict for this index, or None if missing."""
+        device = self._get_device()
+        if device is None:
+            return None
+        temps = device.get("temperatures") or []
+        return temps[self._index] if self._index < len(temps) else None
+
+    @property
+    def native_value(self) -> float | None:
+        """Return the current target (setpoint) temperature."""
+        t = self._get_temp()
+        return t.get("target") if t is not None else None
 
     @property
     def extra_state_attributes(self) -> dict:

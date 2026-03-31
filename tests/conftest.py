@@ -37,6 +37,13 @@ FAKE_DEVICES = [
                 "activated": False,
             },
             {"enabled": False, "title": "Unused", "current": None},
+            {
+                "enabled": True,
+                "title": "DHW Tank",
+                "current": 119.5,
+                "target": 119.0,
+                "activated": False,
+            },
         ],
         "demands": [
             {"title": "Heat", "activated": True},

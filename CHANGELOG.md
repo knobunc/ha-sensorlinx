@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.4] - 2026-03-31
+
+### Added
+- **Temperature target sensors** — A `SensorLinxTemperatureTargetSensor` entity (unique ID `{sync_code}_temp_target_{index}`) is created for every enabled temperature channel that has a non-null live `target` value (e.g. "Tank Target", "DHW Tank Target"). Values are in native °F and auto-converted by HA to the user's preferred unit.
+
 ## [0.6.3] - 2026-03-31
 
 ### Removed

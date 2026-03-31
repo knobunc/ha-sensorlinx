@@ -130,6 +130,30 @@ async def test_temperature_target_in_fahrenheit(
     assert tank.attributes.get("target_temperature") == pytest.approx(130.0, abs=0.1)
 
 
+async def test_temperature_target_sensors_created(hass, setup_integration):
+    """Target sensors are created for channels with non-null targets."""
+    assert hass.states.get("sensor.eco_controller_tank_target") is not None
+    assert hass.states.get("sensor.eco_controller_dhw_tank_target") is not None
+
+
+async def test_temperature_target_sensor_states(hass, setup_integration):
+    """Target sensor values are converted from °F to the HA display unit (°C in tests).
+
+    Tank target: 130.0°F → ~54.4°C
+    DHW Tank target: 119.0°F → ~48.3°C
+    """
+    tank_target = hass.states.get("sensor.eco_controller_tank_target")
+    assert float(tank_target.state) == pytest.approx(54.4, abs=0.1)
+
+    dhw_target = hass.states.get("sensor.eco_controller_dhw_tank_target")
+    assert float(dhw_target.state) == pytest.approx(48.3, abs=0.1)
+
+
+async def test_outdoor_has_no_target_sensor(hass, setup_integration):
+    """Outdoor channel has no target, so no target sensor is created."""
+    assert hass.states.get("sensor.eco_controller_outdoor_target") is None
+
+
 async def test_demand_sensor_updates(hass, setup_integration, mock_sensorlinx):
     """Demand sensor updates when coordinator fetches new data."""
     _, client = mock_sensorlinx

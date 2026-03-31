@@ -27,7 +27,7 @@ async def test_fetch_structures_data(hass, mock_client):
     device = building_data["devices"]["ABC123"]["device"]
     assert device["dmd"] == 45
     assert device["connected"] is True
-    assert len(device["temperatures"]) == 3
+    assert len(device["temperatures"]) == 4
     assert len(device["stages"]) == 3
     assert len(device["pumps"]) == 2
 

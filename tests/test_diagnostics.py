@@ -28,7 +28,7 @@ async def test_diagnostics_contains_building_and_device_info(hass, setup_integra
     assert device["firmware"] == "2.0.1"
     assert device["connected"] is True
     assert device["demand_pct"] == 45
-    assert device["temperature_channels"] == 3
+    assert device["temperature_channels"] == 4
     assert device["demand_channels"] == 2
     assert device["stages"] == 3
     assert device["pumps"] == 2
