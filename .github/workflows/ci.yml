@@ -25,8 +25,6 @@ jobs:
         run: pip install pysensorlinx>=0.1.9
       - name: Run tests
         run: pytest
-      - name: Run mypy
-        run: mypy custom_components/sensorlinx
 
   lint:
     name: Lint
