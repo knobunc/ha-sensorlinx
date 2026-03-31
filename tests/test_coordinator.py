@@ -30,7 +30,6 @@ async def test_fetch_structures_data(hass, mock_client):
     assert len(device["temperatures"]) == 3
     assert len(device["stages"]) == 3
     assert len(device["pumps"]) == 2
-    assert len(device["relays"]) == 4
 
 
 async def test_fetch_skips_device_without_sync_code(hass, mock_client):

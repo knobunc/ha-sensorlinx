@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.3] - 2026-03-31
+
+### Removed
+- **Relay binary sensors** — `SensorLinxRelayBinarySensor` and all associated translation strings removed. The SensorLinx API exposes relay data in the raw device payload but `pysensorlinx` has no getter for it; relay state is not reliably interpretable without library support.
+
 ## [0.6.2] - 2026-03-31
 
 ### Fixed

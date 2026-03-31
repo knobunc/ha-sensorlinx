@@ -106,15 +106,6 @@ async def async_setup_entry(
                         )
                     )
 
-                # Relays
-                for idx in range(len(device.get("relays") or [])):
-                    if _needs(f"{sync_code}_relay_{idx}"):
-                        new_entities.append(
-                            SensorLinxRelayBinarySensor(
-                                coordinator, building_id, sync_code, idx
-                            )
-                        )
-
                 # Weather shutdowns (warm / cold)
                 for wsd_key, wsd_data in (device.get("wsd") or {}).items():
                     if _needs(f"{sync_code}_wsd_{wsd_key}"):
@@ -345,43 +336,6 @@ class SensorLinxReversingValveBinarySensor(SensorLinxBaseEntity, BinarySensorEnt
         if not isinstance(rv, dict):
             return None
         return _safe_bool(rv.get("activated"))
-
-
-class SensorLinxRelayBinarySensor(SensorLinxBaseEntity, BinarySensorEntity):
-    """Whether a relay output is energised."""
-
-    _attr_translation_key = "relay"
-    _attr_device_class = BinarySensorDeviceClass.POWER
-
-    def __init__(
-        self,
-        coordinator: SensorLinxCoordinator,
-        building_id: str,
-        sync_code: str,
-        index: int,
-    ) -> None:
-        """Initialise the relay binary sensor for a specific relay index."""
-        super().__init__(coordinator, building_id, sync_code)
-        self._index = index
-        self._attr_translation_placeholders = {"index": str(index + 1)}
-        self._attr_unique_id = f"{sync_code}_relay_{index}"
-
-    @property
-    def is_on(self) -> bool | None:
-        """Return True when this relay is energised.
-
-        Relay values may be plain booleans or dicts with an 'activated' key.
-        """
-        device = self._get_device()
-        if device is None:
-            return None
-        relays = device.get("relays") or []
-        item = _get_list_item(relays, self._index)
-        if item is None:
-            return None
-        if isinstance(item, dict):
-            return _safe_bool(item.get("activated"))
-        return bool(item)
 
 
 class SensorLinxWeatherShutdownBinarySensor(SensorLinxBaseEntity, BinarySensorEntity):

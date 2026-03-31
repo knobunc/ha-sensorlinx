@@ -32,7 +32,6 @@ async def test_diagnostics_contains_building_and_device_info(hass, setup_integra
     assert device["demand_channels"] == 2
     assert device["stages"] == 3
     assert device["pumps"] == 2
-    assert device["relays"] == 4
     assert device["has_backup"] is True
     assert device["has_reversing_valve"] is True
     assert set(device["wsd_keys"]) == {"wwsd", "cwsd"}

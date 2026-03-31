@@ -46,7 +46,6 @@ async def async_get_config_entry_diagnostics(
                     "demand_channels": len(device.get("demands") or []),
                     "stages": len(device.get("stages") or []),
                     "pumps": len(device.get("pumps") or []),
-                    "relays": len(device.get("relays") or []),
                     "has_backup": device.get("backup") is not None,
                     "has_reversing_valve": device.get("reversingValve") is not None,
                     "wsd_keys": list((device.get("wsd") or {}).keys()),

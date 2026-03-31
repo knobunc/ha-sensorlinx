@@ -46,8 +46,6 @@ async def test_entity_registry_populated_after_setup(hass, setup_integration):
     assert "ABC123_pump_0" in unique_ids
     assert "ABC123_pump_1" in unique_ids
     assert "ABC123_reversing_valve" in unique_ids
-    assert "ABC123_relay_0" in unique_ids
-    assert "ABC123_relay_3" in unique_ids
     assert "ABC123_wsd_wwsd" in unique_ids
     assert "ABC123_wsd_cwsd" in unique_ids
 

@@ -222,32 +222,6 @@ async def test_reversing_valve_not_created_when_absent(
 
 
 # ---------------------------------------------------------------------------
-# Relays
-# ---------------------------------------------------------------------------
-
-
-async def test_relay_sensors_created(hass, setup_integration):
-    for n in range(1, 5):
-        assert hass.states.get(f"binary_sensor.eco_controller_relay_{n}") is not None
-
-
-async def test_relay_sensor_states(hass, setup_integration):
-    # relays: [True, False, True, False]
-    assert hass.states.get("binary_sensor.eco_controller_relay_1").state == "on"
-    assert hass.states.get("binary_sensor.eco_controller_relay_2").state == "off"
-    assert hass.states.get("binary_sensor.eco_controller_relay_3").state == "on"
-    assert hass.states.get("binary_sensor.eco_controller_relay_4").state == "off"
-
-
-async def test_relay_sensor_translation_key(hass, setup_integration):
-    """Relay entities use the 'relay' translation key (not a hardcoded _attr_name)."""
-    ent_reg = er.async_get(hass)
-    for n in range(1, 5):
-        entry = ent_reg.async_get(f"binary_sensor.eco_controller_relay_{n}")
-        assert entry is not None
-        assert entry.translation_key == "relay"
-
-
 # ---------------------------------------------------------------------------
 # Weather shutdown
 # ---------------------------------------------------------------------------
@@ -284,7 +258,6 @@ from custom_components.sensorlinx.binary_sensor import (  # noqa: E402
     SensorLinxConnectedSensor,
     SensorLinxDemandActiveSensor,
     SensorLinxPumpBinarySensor,
-    SensorLinxRelayBinarySensor,
     SensorLinxReversingValveBinarySensor,
     SensorLinxStageBinarySensor,
     SensorLinxWeatherShutdownBinarySensor,
@@ -302,7 +275,6 @@ async def test_all_is_on_return_none_when_device_gone(hass, setup_integration):
         SensorLinxBackupBinarySensor(coordinator, "bld-1", "ABC123"),
         SensorLinxPumpBinarySensor(coordinator, "bld-1", "ABC123", 0, "Pump"),
         SensorLinxReversingValveBinarySensor(coordinator, "bld-1", "ABC123"),
-        SensorLinxRelayBinarySensor(coordinator, "bld-1", "ABC123", 0),
         SensorLinxWeatherShutdownBinarySensor(
             coordinator, "bld-1", "ABC123", "wwsd", "WWSD"
         ),
@@ -383,23 +355,6 @@ async def test_reversing_valve_is_on_returns_none_for_non_dict(hass, setup_integ
     entity = SensorLinxReversingValveBinarySensor(coordinator, "bld-1", "ABC123")
     _replace_device(coordinator, reversingValve="not_a_dict")
     assert entity.is_on is None
-
-
-async def test_relay_is_on_returns_none_for_out_of_bounds_index(
-    hass, setup_integration
-):
-    """is_on returns None when the relay index exceeds the relay list length."""
-    _, coordinator = setup_integration
-    entity = SensorLinxRelayBinarySensor(coordinator, "bld-1", "ABC123", 99)
-    assert entity.is_on is None
-
-
-async def test_relay_is_on_handles_dict_relay_value(hass, setup_integration):
-    """is_on reads 'activated' when a relay entry is a dict rather than a plain bool."""
-    _, coordinator = setup_integration
-    entity = SensorLinxRelayBinarySensor(coordinator, "bld-1", "ABC123", 0)
-    _replace_device(coordinator, relays=[{"activated": True}])
-    assert entity.is_on is True
 
 
 async def test_wsd_is_on_returns_none_for_non_dict_entry(hass, setup_integration):

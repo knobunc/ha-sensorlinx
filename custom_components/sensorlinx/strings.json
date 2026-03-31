@@ -91,9 +91,6 @@
       },
       "reversing_valve": {
         "name": "Reversing Valve"
-      },
-      "relay": {
-        "name": "Relay {index}"
       }
     }
   }
