@@ -20,6 +20,13 @@ FAKE_DEVICES = [
         "firmVer": "2.0.1",
         "connected": True,
         "dmd": 45,
+        "prior": 0,
+        "wwsd": 80,
+        "dot": 45,
+        "htDif": 3,
+        "mbt": 90,
+        "dbt": 105,
+        "auxDif": 3,
         "temperatures": [
             {
                 "enabled": True,

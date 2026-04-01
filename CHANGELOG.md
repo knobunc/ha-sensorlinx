@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.5] - 2026-03-31
+
+### Added
+- **Configuration setting sensors** — Seven new sensor entities expose device configuration values as read-only HA sensors: HVAC Priority (`prior`, enum: heat/cool/auto), WWSD Temperature (`wwsd`, °F; returns unavailable when set to sentinel value 32), Outdoor Reset Temperature (`dot`, °F; returns unavailable when set to sentinel value -41), Min Tank Temperature (`mbt`), Max Tank Temperature (`dbt`), Heat Differential (`htDif`, °F delta), DHW Differential (`auxDif`, °F delta). Temperature sensors auto-convert to the user's preferred unit via HA; delta sensors report raw °F values.
+
 ## [0.6.4] - 2026-03-31
 
 ### Added

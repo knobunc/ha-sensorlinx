@@ -74,6 +74,57 @@ async def async_setup_entry(
                                     )
                                 )
 
+                # Priority sensor
+                if "prior" in device:
+                    uid = f"{sync_code}_hvac_priority"
+                    if not ent_reg.async_get_entity_id("sensor", DOMAIN, uid):
+                        new_entities.append(
+                            SensorLinxPrioritySensor(coordinator, building_id, sync_code)
+                        )
+
+                # Config temperature sensors (scalar °F setpoints)
+                _TEMP_CFG: list[tuple[str, str, str, int | None]] = [
+                    ("wwsd", "wwsd_temp", "wwsd_temp", 32),
+                    ("dot", "outdoor_reset", "outdoor_reset", -41),
+                    ("mbt", "min_tank_temp", "min_tank_temp", None),
+                    ("dbt", "max_tank_temp", "max_tank_temp", None),
+                ]
+                for cfg_key, uid_suffix, t_key, sentinel in _TEMP_CFG:
+                    if cfg_key in device:
+                        uid = f"{sync_code}_{uid_suffix}"
+                        if not ent_reg.async_get_entity_id("sensor", DOMAIN, uid):
+                            new_entities.append(
+                                SensorLinxConfigTemperatureSensor(
+                                    coordinator,
+                                    building_id,
+                                    sync_code,
+                                    cfg_key,
+                                    uid_suffix,
+                                    t_key,
+                                    sentinel,
+                                )
+                            )
+
+                # Config delta sensors (°F differential values)
+                _DELTA_CFG: list[tuple[str, str, str]] = [
+                    ("htDif", "heat_differential", "heat_differential"),
+                    ("auxDif", "dhw_differential", "dhw_differential"),
+                ]
+                for cfg_key, uid_suffix, t_key in _DELTA_CFG:
+                    if cfg_key in device:
+                        uid = f"{sync_code}_{uid_suffix}"
+                        if not ent_reg.async_get_entity_id("sensor", DOMAIN, uid):
+                            new_entities.append(
+                                SensorLinxConfigDeltaSensor(
+                                    coordinator,
+                                    building_id,
+                                    sync_code,
+                                    cfg_key,
+                                    uid_suffix,
+                                    t_key,
+                                )
+                            )
+
         if new_entities:
             _LOGGER.debug("Adding %d new sensor entity/entities", len(new_entities))
             async_add_entities(new_entities)
@@ -233,3 +284,99 @@ class SensorLinxTemperatureTargetSensor(SensorLinxBaseEntity, SensorEntity):
         elif "activated" in t:
             attrs["state"] = "active" if t["activated"] else "idle"
         return attrs
+
+
+_PRIORITY_MAP: dict[int, str] = {0: "heat", 1: "cool", 2: "auto"}
+
+
+class SensorLinxPrioritySensor(SensorLinxBaseEntity, SensorEntity):
+    """HVAC mode priority setting for a device."""
+
+    _attr_translation_key = "hvac_priority"
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ["heat", "cool", "auto"]
+    _attr_icon = "mdi:hvac"
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+    ) -> None:
+        super().__init__(coordinator, building_id, sync_code)
+        self._attr_unique_id = f"{sync_code}_hvac_priority"
+
+    @property
+    def native_value(self) -> str | None:
+        device = self._get_device()
+        if device is None:
+            return None
+        prior = device.get("prior")
+        return _PRIORITY_MAP.get(prior) if prior is not None else None
+
+
+class SensorLinxConfigTemperatureSensor(SensorLinxBaseEntity, SensorEntity):
+    """A scalar configuration temperature (setpoint) for a device."""
+
+    _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.FAHRENHEIT
+    _attr_suggested_display_precision = 1
+    _attr_icon = "mdi:thermometer-lines"
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+        api_key: str,
+        uid_suffix: str,
+        translation_key: str,
+        sentinel: int | None = None,
+    ) -> None:
+        super().__init__(coordinator, building_id, sync_code)
+        self._api_key = api_key
+        self._sentinel = sentinel
+        self._attr_translation_key = translation_key
+        self._attr_unique_id = f"{sync_code}_{uid_suffix}"
+
+    @property
+    def native_value(self) -> float | None:
+        device = self._get_device()
+        if device is None:
+            return None
+        val = device.get(self._api_key)
+        if val is None or val == self._sentinel:
+            return None
+        return float(val)
+
+
+class SensorLinxConfigDeltaSensor(SensorLinxBaseEntity, SensorEntity):
+    """A temperature differential (delta) configuration value for a device."""
+
+    _attr_state_class = SensorStateClass.MEASUREMENT
+    _attr_native_unit_of_measurement = UnitOfTemperature.FAHRENHEIT
+    _attr_suggested_display_precision = 1
+    _attr_icon = "mdi:thermometer-plus"
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+        api_key: str,
+        uid_suffix: str,
+        translation_key: str,
+    ) -> None:
+        super().__init__(coordinator, building_id, sync_code)
+        self._api_key = api_key
+        self._attr_translation_key = translation_key
+        self._attr_unique_id = f"{sync_code}_{uid_suffix}"
+
+    @property
+    def native_value(self) -> float | None:
+        device = self._get_device()
+        if device is None:
+            return None
+        val = device.get(self._api_key)
+        return float(val) if val is not None else None

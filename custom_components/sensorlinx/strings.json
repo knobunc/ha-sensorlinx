@@ -80,6 +80,32 @@
     "sensor": {
       "demand": {
         "name": "Demand"
+      },
+      "hvac_priority": {
+        "name": "HVAC Priority",
+        "state": {
+          "heat": "Heat",
+          "cool": "Cool",
+          "auto": "Auto"
+        }
+      },
+      "wwsd_temp": {
+        "name": "WWSD Temperature"
+      },
+      "outdoor_reset": {
+        "name": "Outdoor Reset Temperature"
+      },
+      "heat_differential": {
+        "name": "Heat Differential"
+      },
+      "min_tank_temp": {
+        "name": "Min Tank Temperature"
+      },
+      "max_tank_temp": {
+        "name": "Max Tank Temperature"
+      },
+      "dhw_differential": {
+        "name": "DHW Differential"
       }
     },
     "binary_sensor": {

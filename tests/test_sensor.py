@@ -185,6 +185,98 @@ async def test_device_removed_when_device_disappears(
     assert hass.states.get("sensor.eco_controller_demand") is None
 
 
+async def test_hvac_priority_sensor(hass, setup_integration):
+    """Priority sensor maps prior=0 to 'heat'."""
+    state = hass.states.get("sensor.eco_controller_hvac_priority")
+    assert state is not None
+    assert state.state == "heat"
+
+
+async def test_hvac_priority_sensor_updates(hass, setup_integration, mock_sensorlinx):
+    """Priority sensor reflects updated prior values."""
+    _, client = mock_sensorlinx
+    entry, coordinator = setup_integration
+
+    client.get_devices.return_value = [{**FAKE_DEVICES[0], "prior": 1}]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.eco_controller_hvac_priority").state == "cool"
+
+    client.get_devices.return_value = [{**FAKE_DEVICES[0], "prior": 2}]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.eco_controller_hvac_priority").state == "auto"
+
+
+async def test_wwsd_temp_sensor(hass, setup_integration):
+    """WWSD temperature sensor converts 80°F to ~26.7°C in metric."""
+    state = hass.states.get("sensor.eco_controller_wwsd_temperature")
+    assert state is not None
+    assert float(state.state) == pytest.approx(26.7, abs=0.1)
+
+
+async def test_wwsd_temp_sentinel_returns_none(hass, setup_integration, mock_sensorlinx):
+    """WWSD=32 (sentinel for 'off') results in unknown state."""
+    _, client = mock_sensorlinx
+    entry, coordinator = setup_integration
+
+    client.get_devices.return_value = [{**FAKE_DEVICES[0], "wwsd": 32}]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.eco_controller_wwsd_temperature").state == "unknown"
+
+
+async def test_outdoor_reset_sensor(hass, setup_integration):
+    """Outdoor reset sensor converts 45°F to ~7.2°C in metric."""
+    state = hass.states.get("sensor.eco_controller_outdoor_reset_temperature")
+    assert state is not None
+    assert float(state.state) == pytest.approx(7.2, abs=0.1)
+
+
+async def test_outdoor_reset_sentinel_returns_none(
+    hass, setup_integration, mock_sensorlinx
+):
+    """dot=-41 (sentinel for 'off') results in unknown state."""
+    _, client = mock_sensorlinx
+    entry, coordinator = setup_integration
+
+    client.get_devices.return_value = [{**FAKE_DEVICES[0], "dot": -41}]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert (
+        hass.states.get("sensor.eco_controller_outdoor_reset_temperature").state
+        == "unknown"
+    )
+
+
+async def test_min_tank_temp_sensor(hass, setup_integration):
+    """Min tank temperature sensor converts 90°F to ~32.2°C in metric."""
+    state = hass.states.get("sensor.eco_controller_min_tank_temperature")
+    assert state is not None
+    assert float(state.state) == pytest.approx(32.2, abs=0.1)
+
+
+async def test_max_tank_temp_sensor(hass, setup_integration):
+    """Max tank temperature sensor converts 105°F to ~40.6°C in metric."""
+    state = hass.states.get("sensor.eco_controller_max_tank_temperature")
+    assert state is not None
+    assert float(state.state) == pytest.approx(40.6, abs=0.1)
+
+
+async def test_heat_differential_sensor(hass, setup_integration):
+    """Heat differential sensor reports raw °F delta value."""
+    state = hass.states.get("sensor.eco_controller_heat_differential")
+    assert state is not None
+    assert float(state.state) == pytest.approx(3.0, abs=0.01)
+
+
+async def test_dhw_differential_sensor(hass, setup_integration):
+    """DHW differential sensor reports raw °F delta value."""
+    state = hass.states.get("sensor.eco_controller_dhw_differential")
+    assert state is not None
+    assert float(state.state) == pytest.approx(3.0, abs=0.01)
+
+
 async def test_device_info(hass, setup_integration):
     """Device info fields are populated from pysensorlinx dict keys."""
     entity_reg = er.async_get(hass)
