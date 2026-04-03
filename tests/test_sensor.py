@@ -215,7 +215,9 @@ async def test_wwsd_temp_sensor(hass, setup_integration):
     assert float(state.state) == pytest.approx(26.7, abs=0.1)
 
 
-async def test_wwsd_temp_sentinel_returns_none(hass, setup_integration, mock_sensorlinx):
+async def test_wwsd_temp_sentinel_returns_none(
+    hass, setup_integration, mock_sensorlinx
+):
     """WWSD=32 (sentinel for 'off') results in unknown state."""
     _, client = mock_sensorlinx
     entry, coordinator = setup_integration

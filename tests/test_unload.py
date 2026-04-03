@@ -105,9 +105,7 @@ async def test_sensors_available_after_reload(
 
     _, client = mock_sensorlinx
 
-    entry = MockConfigEntry(
-        domain="sensorlinx", data=CONF_DATA, entry_id="test_reload"
-    )
+    entry = MockConfigEntry(domain="sensorlinx", data=CONF_DATA, entry_id="test_reload")
     entry.add_to_hass(hass)
     assert await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()

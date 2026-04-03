@@ -92,7 +92,9 @@ async def async_setup_entry(
                     uid = f"{sync_code}_hvac_priority"
                     if _needs(uid):
                         new_entities.append(
-                            SensorLinxPrioritySensor(coordinator, building_id, sync_code)
+                            SensorLinxPrioritySensor(
+                                coordinator, building_id, sync_code
+                            )
                         )
 
                 # Config temperature sensors (scalar °F setpoints)
