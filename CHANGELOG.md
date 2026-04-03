@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.7] - 2026-04-03
+
+### Fixed
+- **Ruff formatting** — `sensor.py`, `tests/test_sensor.py`, and `tests/test_unload.py` reformatted to satisfy `ruff format --check` in CI.
+
 ## [0.6.6] - 2026-04-03
 
 ### Fixed
