@@ -31,11 +31,24 @@ async def async_setup_entry(
     """Set up SensorLinx sensor entities from a config entry."""
     coordinator: SensorLinxCoordinator = hass.data[DOMAIN][entry.entry_id]
 
+    _added_uids: set[str] = set()
+
     @callback
     def _async_add_sensors() -> None:
-        """Add sensor entities for any devices not yet in the entity registry."""
+        """Add sensor entities for devices not yet added in this setup session."""
         ent_reg = er.async_get(hass)
         new_entities: list[SensorEntity] = []
+
+        def _needs(uid: str) -> bool:
+            """Return True if this entity should be created now.
+
+            Skip if already added this session AND still present in the registry.
+            Re-add if stale cleanup removed it from the registry mid-session.
+            """
+            if uid not in _added_uids:
+                _added_uids.add(uid)
+                return True
+            return ent_reg.async_get_entity_id("sensor", DOMAIN, uid) is None
 
         for building_id, building_data in coordinator.data.items():
             for sync_code, device_data in building_data["devices"].items():
@@ -43,7 +56,7 @@ async def async_setup_entry(
 
                 if device.get("dmd") is not None:
                     uid = f"{sync_code}_demand"
-                    if not ent_reg.async_get_entity_id("sensor", DOMAIN, uid):
+                    if _needs(uid):
                         new_entities.append(
                             SensorLinxDemandSensor(coordinator, building_id, sync_code)
                         )
@@ -51,7 +64,7 @@ async def async_setup_entry(
                 for idx, temp in enumerate(device.get("temperatures") or []):
                     if temp.get("enabled"):
                         uid = f"{sync_code}_temp_{idx}"
-                        if not ent_reg.async_get_entity_id("sensor", DOMAIN, uid):
+                        if _needs(uid):
                             new_entities.append(
                                 SensorLinxTemperatureSensor(
                                     coordinator,
@@ -63,7 +76,7 @@ async def async_setup_entry(
                             )
                         if temp.get("target") is not None:
                             uid = f"{sync_code}_temp_target_{idx}"
-                            if not ent_reg.async_get_entity_id("sensor", DOMAIN, uid):
+                            if _needs(uid):
                                 new_entities.append(
                                     SensorLinxTemperatureTargetSensor(
                                         coordinator,
@@ -77,7 +90,7 @@ async def async_setup_entry(
                 # Priority sensor
                 if "prior" in device:
                     uid = f"{sync_code}_hvac_priority"
-                    if not ent_reg.async_get_entity_id("sensor", DOMAIN, uid):
+                    if _needs(uid):
                         new_entities.append(
                             SensorLinxPrioritySensor(coordinator, building_id, sync_code)
                         )
@@ -92,7 +105,7 @@ async def async_setup_entry(
                 for cfg_key, uid_suffix, t_key, sentinel in _TEMP_CFG:
                     if cfg_key in device:
                         uid = f"{sync_code}_{uid_suffix}"
-                        if not ent_reg.async_get_entity_id("sensor", DOMAIN, uid):
+                        if _needs(uid):
                             new_entities.append(
                                 SensorLinxConfigTemperatureSensor(
                                     coordinator,
@@ -113,7 +126,7 @@ async def async_setup_entry(
                 for cfg_key, uid_suffix, t_key in _DELTA_CFG:
                     if cfg_key in device:
                         uid = f"{sync_code}_{uid_suffix}"
-                        if not ent_reg.async_get_entity_id("sensor", DOMAIN, uid):
+                        if _needs(uid):
                             new_entities.append(
                                 SensorLinxConfigDeltaSensor(
                                     coordinator,

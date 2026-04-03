@@ -88,6 +88,41 @@ async def test_services_unregistered_after_last_entry_unloaded(hass, setup_integ
     assert not hass.services.has_service("sensorlinx", SERVICE_SET_PERMANENT_DEMAND)
 
 
+async def test_sensors_available_after_reload(
+    hass, mock_sensorlinx, enable_custom_integrations
+):
+    """Sensors must be re-created (not stuck unavailable) after an integration reload.
+
+    The reload path unloads the entry and calls async_setup_entry again with a fresh
+    coordinator. A stale entity-registry check would skip creating entity objects on
+    the second setup because the registry entries from the first setup still exist.
+    This test asserts that sensors are live and not STATE_UNAVAILABLE after reload.
+    """
+    from homeassistant.const import STATE_UNAVAILABLE
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from .conftest import CONF_DATA
+
+    _, client = mock_sensorlinx
+
+    entry = MockConfigEntry(
+        domain="sensorlinx", data=CONF_DATA, entry_id="test_reload"
+    )
+    entry.add_to_hass(hass)
+    assert await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert hass.states.get("sensor.eco_controller_demand").state != STATE_UNAVAILABLE
+
+    # Reload the entry (same as pressing Reload in the UI)
+    assert await hass.config_entries.async_reload(entry.entry_id)
+    await hass.async_block_till_done()
+
+    state = hass.states.get("sensor.eco_controller_demand")
+    assert state is not None
+    assert state.state != STATE_UNAVAILABLE
+
+
 async def test_services_not_unregistered_when_one_entry_remains(
     hass, mock_sensorlinx, enable_custom_integrations
 ):

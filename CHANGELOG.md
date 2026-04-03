@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.6.6] - 2026-04-03
+
+### Fixed
+- **Sensors unavailable after reload** — On integration reload, the entity registry still held entries from the previous setup session. Both sensor platforms were checking the entity registry to avoid duplicate entities; every entity was skipped, leaving HA with registry entries but no backing objects — displayed as unavailable. Platforms now track added UIDs in a per-session set and only fall back to the registry check to handle re-appearance after stale device cleanup.
+
 ## [0.6.5] - 2026-03-31
 
 ### Added

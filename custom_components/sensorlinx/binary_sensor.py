@@ -29,14 +29,24 @@ async def async_setup_entry(
     """Set up SensorLinx binary sensor entities from a config entry."""
     coordinator: SensorLinxCoordinator = hass.data[DOMAIN][entry.entry_id]
 
+    _added_uids: set[str] = set()
+
     @callback
     def _async_add_binary_sensors() -> None:
-        """Add binary sensor entities for any devices not yet in the entity registry."""
+        """Add binary sensor entities for devices not yet added in this setup session."""
         ent_reg = er.async_get(hass)
         new_entities: list[BinarySensorEntity] = []
 
         def _needs(uid: str) -> bool:
-            return not ent_reg.async_get_entity_id("binary_sensor", DOMAIN, uid)
+            """Return True if this entity should be created now.
+
+            Skip if already added this session AND still present in the registry.
+            Re-add if stale cleanup removed it from the registry mid-session.
+            """
+            if uid not in _added_uids:
+                _added_uids.add(uid)
+                return True
+            return ent_reg.async_get_entity_id("binary_sensor", DOMAIN, uid) is None
 
         for building_id, building_data in coordinator.data.items():
             for sync_code, device_data in building_data["devices"].items():
