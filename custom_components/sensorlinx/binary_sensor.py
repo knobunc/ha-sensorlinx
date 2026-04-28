@@ -390,6 +390,7 @@ class SensorLinxDHWEnabledSensor(SensorLinxBaseEntity, BinarySensorEntity):
     """Whether Domestic Hot Water demand is enabled on the device."""
 
     _attr_translation_key = "dhw_enabled"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:water-boiler"
 
     def __init__(
