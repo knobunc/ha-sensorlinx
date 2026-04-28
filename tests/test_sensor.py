@@ -350,6 +350,36 @@ async def test_cold_differential_sensor(hass, setup_integration):
     assert float(state.state) == pytest.approx(8.0, abs=0.01)
 
 
+async def test_activated_state_sensor(hass, setup_integration):
+    """Activated state sensor exposes activatedState from the temperature channel."""
+    state = hass.states.get("sensor.eco_controller_tank_state")
+    assert state is not None
+    assert state.state == "heating"
+
+
+async def test_activated_state_sensor_updates(hass, setup_integration, mock_sensorlinx):
+    """Activated state sensor reflects updated activatedState values."""
+    _, client = mock_sensorlinx
+    entry, coordinator = setup_integration
+
+    device = {
+        **FAKE_DEVICES[0],
+        "temperatures": [
+            {**FAKE_DEVICES[0]["temperatures"][0], "activatedState": "satisfied"},
+            *FAKE_DEVICES[0]["temperatures"][1:],
+        ],
+    }
+    client.get_devices.return_value = [device]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+    assert hass.states.get("sensor.eco_controller_tank_state").state == "satisfied"
+
+
+async def test_activated_state_not_created_without_field(hass, setup_integration):
+    """Channels without activatedState don't get a state sensor."""
+    assert hass.states.get("sensor.eco_controller_outdoor_state") is None
+
+
 async def test_device_info(hass, setup_integration):
     """Device info fields are populated from pysensorlinx dict keys."""
     entity_reg = er.async_get(hass)

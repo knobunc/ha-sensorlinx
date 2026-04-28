@@ -2,10 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
-## [0.8.0] - 2026-04-28
+## [0.9.0] - 2026-04-28
+
+### Added
+- **Activated state sensor** — new `SensorLinxActivatedStateSensor` exposes the `activatedState` field from temperature channels (e.g. "heating", "cooling", "satisfied") as a text sensor. Unique ID: `{sync_code}_temp_state_{index}`.
 
 ### Changed
 - **Diagnostic entity category** — HVAC priority, all config temperature sensors (WWSD, outdoor reset, min/max tank, DHW target, CWSD, cold outdoor reset, cold min/max tank), all config delta sensors (heat differential, DHW differential, cold differential), and DHW enabled binary sensor are now `EntityCategory.DIAGNOSTIC`, placing them in the Diagnostic section of the device card.
+- **Demand sensor names** — demand binary sensors renamed from "Heat", "Cool", "DHW" to "Heat Demand", "Cool Demand", "DHW Demand" for clarity.
+- **Demand sensor device class** — removed `BinarySensorDeviceClass.RUNNING` from demand sensors since they represent a call for demand, not equipment running.
 
 ## [0.7.0] - 2026-04-27
 
