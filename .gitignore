@@ -22,5 +22,8 @@ htmlcov/
 *.swp
 *.swo
 
+# Secrets
+secrets.json
+
 # Claude Code editor settings
 .claude/
