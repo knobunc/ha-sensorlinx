@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.1] - 2026-04-28
+
+### Fixed
+- **Debug logging via UI** — added `loggers` entry to `manifest.json` so the HA "Enable debug logging" button targets the correct Python logger (`custom_components.sensorlinx`).
+
 ## [0.9.0] - 2026-04-28
 
 ### Added
