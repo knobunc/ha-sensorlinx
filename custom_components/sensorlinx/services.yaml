@@ -30,3 +30,201 @@ set_permanent_demand:
       example: false
       selector:
         boolean:
+
+set_hot_tank_config:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: sensorlinx
+    warm_weather_shutdown:
+      example: "80"
+      selector:
+        text:
+    outdoor_reset:
+      example: "45"
+      selector:
+        text:
+    differential:
+      example: 4
+      selector:
+        number:
+          min: 2
+          max: 100
+          unit_of_measurement: "°F"
+    min_temp:
+      example: 80
+      selector:
+        number:
+          min: 2
+          max: 180
+          unit_of_measurement: "°F"
+    max_temp:
+      example: 115
+      selector:
+        number:
+          min: 2
+          max: 180
+          unit_of_measurement: "°F"
+
+set_cold_tank_config:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: sensorlinx
+    cold_weather_shutdown:
+      example: "75"
+      selector:
+        text:
+    outdoor_reset:
+      example: "90"
+      selector:
+        text:
+    differential:
+      example: 8
+      selector:
+        number:
+          min: 2
+          max: 100
+          unit_of_measurement: "°F"
+    min_temp:
+      example: 45
+      selector:
+        number:
+          min: 2
+          max: 180
+          unit_of_measurement: "°F"
+    max_temp:
+      example: 60
+      selector:
+        number:
+          min: 2
+          max: 180
+          unit_of_measurement: "°F"
+
+set_dhw_config:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: sensorlinx
+    enabled:
+      example: true
+      selector:
+        boolean:
+    target_temp:
+      example: 120
+      selector:
+        number:
+          min: 33
+          max: 180
+          unit_of_measurement: "°F"
+    differential:
+      example: 4
+      selector:
+        number:
+          min: 2
+          max: 100
+          unit_of_measurement: "°F"
+
+set_backup_config:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: sensorlinx
+    lag_time:
+      example: "30"
+      selector:
+        text:
+    temp:
+      example: "40"
+      selector:
+        text:
+    differential:
+      example: "10"
+      selector:
+        text:
+    only_outdoor_temp:
+      example: "off"
+      selector:
+        text:
+    only_tank_temp:
+      example: "off"
+      selector:
+        text:
+
+set_staging_config:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: sensorlinx
+    number_of_stages:
+      example: 2
+      selector:
+        number:
+          min: 1
+          max: 4
+    two_stage:
+      example: false
+      selector:
+        boolean:
+    stage_on_lag_time:
+      example: 10
+      selector:
+        number:
+          min: 1
+          max: 240
+          unit_of_measurement: "min"
+    stage_off_lag_time:
+      example: 30
+      selector:
+        number:
+          min: 1
+          max: 240
+          unit_of_measurement: "s"
+    rotate_cycles:
+      example: "100"
+      selector:
+        text:
+    rotate_time:
+      example: "off"
+      selector:
+        text:
+    off_staging:
+      example: false
+      selector:
+        boolean:
+
+set_system_config:
+  fields:
+    device_id:
+      required: true
+      selector:
+        device:
+          integration: sensorlinx
+    weather_shutdown_lag_time:
+      example: 4
+      selector:
+        number:
+          min: 0
+          max: 240
+          unit_of_measurement: "hr"
+    heat_cool_switch_delay:
+      example: 120
+      selector:
+        number:
+          min: 30
+          max: 600
+          unit_of_measurement: "s"
+    wide_priority_differential:
+      example: false
+      selector:
+        boolean:

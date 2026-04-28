@@ -415,3 +415,48 @@ async def test_wsd_sensors_not_created_when_absent(
 
     assert hass.states.get("binary_sensor.eco_controller_warm_weather_shutdown") is None
     assert hass.states.get("binary_sensor.eco_controller_cold_weather_shutdown") is None
+
+
+# ---------------------------------------------------------------------------
+# DHW enabled
+# ---------------------------------------------------------------------------
+
+
+async def test_dhw_enabled_sensor_on(hass, setup_integration):
+    """DHW enabled sensor reflects dhwOn=True as on."""
+    state = hass.states.get("binary_sensor.eco_controller_dhw_enabled")
+    assert state is not None
+    assert state.state == "on"
+
+
+async def test_dhw_enabled_sensor_off(hass, setup_integration, mock_sensorlinx):
+    """DHW enabled sensor reflects dhwOn=False as off."""
+    _, client = mock_sensorlinx
+    entry, coordinator = setup_integration
+
+    client.get_devices.return_value = [{**FAKE_DEVICES[0], "dhwOn": False}]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert hass.states.get("binary_sensor.eco_controller_dhw_enabled").state == "off"
+
+
+async def test_dhw_enabled_not_created_when_absent(
+    hass, mock_sensorlinx, enable_custom_integrations
+):
+    """No DHW enabled entity when device has no dhwOn key."""
+    from pytest_homeassistant_custom_component.common import MockConfigEntry
+
+    from .conftest import CONF_DATA
+
+    _, client = mock_sensorlinx
+    device = {**FAKE_DEVICES[0]}
+    device.pop("dhwOn", None)
+    client.get_devices.return_value = [device]
+
+    entry = MockConfigEntry(domain="sensorlinx", data=CONF_DATA, entry_id="test_dhw")
+    entry.add_to_hass(hass)
+    await hass.config_entries.async_setup(entry.entry_id)
+    await hass.async_block_till_done()
+
+    assert hass.states.get("binary_sensor.eco_controller_dhw_enabled") is None

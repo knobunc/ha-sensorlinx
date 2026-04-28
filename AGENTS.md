@@ -19,13 +19,14 @@ pip install -r requirements_test.txt
 
 ```
 custom_components/sensorlinx/
-  __init__.py        # entry setup/teardown, stale cleanup, async_remove_config_entry_device
+  __init__.py        # entry setup/teardown, stale cleanup, async_remove_config_entry_device (BINARY_SENSOR, SENSOR, WEATHER)
   coordinator.py     # DataUpdateCoordinator — polls buildings + devices, handles re-auth
   entity.py          # SensorLinxBaseEntity (base class, device_info, availability)
   sensor.py          # Demand (%) + temperature channel sensors
   binary_sensor.py   # Connected, demand, stages, backup, pumps, valve, relays, WSD
   config_flow.py     # User + reauth + options flows
-  services.py        # set_hvac_mode_priority, set_permanent_demand
+  weather.py         # building-level WeatherEntity (current + hourly forecast)
+  services.py        # set_hvac_mode_priority, set_permanent_demand, + 6 config services
   diagnostics.py     # async_get_config_entry_diagnostics
   const.py           # domain, defaults, config key names
   strings.json       # UI strings + entity/service translations (source of truth)
@@ -42,6 +43,7 @@ tests/
   test_integration.py
   test_unload.py
   test_diagnostics.py
+  test_weather.py
   test_edge_cases.py
 ```
 
@@ -64,14 +66,29 @@ coordinator.data = {
 |--------|-------------------|
 | Demand sensor | `{sync_code}_demand` |
 | Temperature sensor | `{sync_code}_temp_{index}` |
+| Temperature target sensor | `{sync_code}_temp_target_{index}` |
+| HVAC priority | `{sync_code}_hvac_priority` |
+| WWSD temperature | `{sync_code}_wwsd_temp` |
+| Outdoor reset temperature | `{sync_code}_outdoor_reset` |
+| Min tank temperature | `{sync_code}_min_tank_temp` |
+| Max tank temperature | `{sync_code}_max_tank_temp` |
+| Heat differential | `{sync_code}_heat_differential` |
+| DHW differential | `{sync_code}_dhw_differential` |
+| DHW target temperature | `{sync_code}_dhw_target_temp` |
+| CWSD temperature | `{sync_code}_cwsd_temp` |
+| Cold outdoor reset | `{sync_code}_cold_outdoor_reset` |
+| Cold min tank temperature | `{sync_code}_cold_min_tank_temp` |
+| Cold max tank temperature | `{sync_code}_cold_max_tank_temp` |
+| Cold differential | `{sync_code}_cold_differential` |
 | Connected | `{sync_code}_connected` |
 | Demand channel | `{sync_code}_demand_{index}` |
 | Stage | `{sync_code}_stage_{index}` |
 | Backup heat | `{sync_code}_backup` |
 | Pump | `{sync_code}_pump_{index}` |
 | Reversing valve | `{sync_code}_reversing_valve` |
-| Relay | `{sync_code}_relay_{index}` |
+| DHW enabled | `{sync_code}_dhw_enabled` |
 | Weather shutdown | `{sync_code}_wsd_{wsd_key}` |
+| Weather | `{building_id}_weather` |
 
 ## Key constraints
 

@@ -116,6 +116,12 @@ async def async_setup_entry(
                         )
                     )
 
+                # DHW enabled
+                if "dhwOn" in device and _needs(f"{sync_code}_dhw_enabled"):
+                    new_entities.append(
+                        SensorLinxDHWEnabledSensor(coordinator, building_id, sync_code)
+                    )
+
                 # Weather shutdowns (warm / cold)
                 for wsd_key, wsd_data in (device.get("wsd") or {}).items():
                     if _needs(f"{sync_code}_wsd_{wsd_key}"):
@@ -378,3 +384,27 @@ class SensorLinxWeatherShutdownBinarySensor(SensorLinxBaseEntity, BinarySensorEn
         if not isinstance(entry, dict):
             return None
         return _safe_bool(entry.get("activated"))
+
+
+class SensorLinxDHWEnabledSensor(SensorLinxBaseEntity, BinarySensorEntity):
+    """Whether Domestic Hot Water demand is enabled on the device."""
+
+    _attr_translation_key = "dhw_enabled"
+    _attr_icon = "mdi:water-boiler"
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+    ) -> None:
+        super().__init__(coordinator, building_id, sync_code)
+        self._attr_unique_id = f"{sync_code}_dhw_enabled"
+
+    @property
+    def is_on(self) -> bool | None:
+        device = self._get_device()
+        if device is None:
+            return None
+        val = device.get("dhwOn")
+        return _safe_bool(val)

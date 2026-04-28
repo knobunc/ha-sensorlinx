@@ -74,6 +74,178 @@
           "description": "If true, enables permanent cooling demand so the device always maintains the cold tank target temperature."
         }
       }
+    },
+    "set_hot_tank_config": {
+      "name": "Set Hot Tank Configuration",
+      "description": "Configure hot tank parameters for a SensorLinx device. At least one parameter must be provided. Temperature values are in degrees Fahrenheit.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The SensorLinx device to control."
+        },
+        "warm_weather_shutdown": {
+          "name": "Warm Weather Shutdown",
+          "description": "Outdoor temperature (°F) above which heating shuts down, or 'off' to disable (34–180°F)."
+        },
+        "outdoor_reset": {
+          "name": "Outdoor Reset Temperature",
+          "description": "Design outdoor temperature (°F) for the hot tank outdoor reset curve, or 'off' to disable (-40–127°F)."
+        },
+        "differential": {
+          "name": "Heat Differential",
+          "description": "Hot tank differential in °F — how far above/below target before demand triggers (2–100°F)."
+        },
+        "min_temp": {
+          "name": "Min Tank Temperature",
+          "description": "Minimum (or target) hot tank temperature in °F (2–180°F)."
+        },
+        "max_temp": {
+          "name": "Max Tank Temperature",
+          "description": "Maximum hot tank temperature in °F, used with outdoor reset (2–180°F)."
+        }
+      }
+    },
+    "set_cold_tank_config": {
+      "name": "Set Cold Tank Configuration",
+      "description": "Configure cold tank parameters for a SensorLinx device. At least one parameter must be provided. Temperature values are in degrees Fahrenheit.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The SensorLinx device to control."
+        },
+        "cold_weather_shutdown": {
+          "name": "Cold Weather Shutdown",
+          "description": "Outdoor temperature (°F) below which cooling shuts down, or 'off' to disable (33–119°F)."
+        },
+        "outdoor_reset": {
+          "name": "Outdoor Reset Temperature",
+          "description": "Design outdoor temperature (°F) for the cold tank outdoor reset curve, or 'off' to disable (0–119°F)."
+        },
+        "differential": {
+          "name": "Cold Differential",
+          "description": "Cold tank differential in °F — how far above/below target before demand triggers (2–100°F)."
+        },
+        "min_temp": {
+          "name": "Min Tank Temperature",
+          "description": "Minimum (or target) cold tank temperature in °F (2–180°F)."
+        },
+        "max_temp": {
+          "name": "Max Tank Temperature",
+          "description": "Maximum cold tank temperature in °F, used with outdoor reset (2–180°F)."
+        }
+      }
+    },
+    "set_dhw_config": {
+      "name": "Set DHW Configuration",
+      "description": "Configure Domestic Hot Water (DHW) parameters for a SensorLinx device. At least one parameter must be provided.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The SensorLinx device to control."
+        },
+        "enabled": {
+          "name": "DHW Enabled",
+          "description": "Enable or disable the DHW demand channel."
+        },
+        "target_temp": {
+          "name": "DHW Target Temperature",
+          "description": "DHW tank target temperature in °F (33–180°F)."
+        },
+        "differential": {
+          "name": "DHW Differential",
+          "description": "DHW differential in °F — how far below target before DHW demand triggers (2–100°F)."
+        }
+      }
+    },
+    "set_backup_config": {
+      "name": "Set Backup Configuration",
+      "description": "Configure backup heater parameters for a SensorLinx device. At least one parameter must be provided.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The SensorLinx device to control."
+        },
+        "lag_time": {
+          "name": "Backup Lag Time",
+          "description": "Minutes between heat pump stages and backup activation, or 'off' to disable (1–240)."
+        },
+        "temp": {
+          "name": "Backup Temperature",
+          "description": "Outdoor temperature (°F) below which backup is allowed, or 'off' to disable (2–100°F)."
+        },
+        "differential": {
+          "name": "Backup Differential",
+          "description": "Tank differential (°F) at which backup activates immediately, or 'off' to disable (2–100°F)."
+        },
+        "only_outdoor_temp": {
+          "name": "Backup Only Outdoor Temp",
+          "description": "Outdoor temperature (°F) below which only backup runs, or 'off' to disable (-40–127°F)."
+        },
+        "only_tank_temp": {
+          "name": "Backup Only Tank Temp",
+          "description": "Tank temperature (°F) above which only backup heats, or 'off' to disable (33–200°F)."
+        }
+      }
+    },
+    "set_staging_config": {
+      "name": "Set Staging Configuration",
+      "description": "Configure heat pump staging parameters for a SensorLinx device. At least one parameter must be provided.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The SensorLinx device to control."
+        },
+        "number_of_stages": {
+          "name": "Number of Stages",
+          "description": "Number of heat pump stages (1–4)."
+        },
+        "two_stage": {
+          "name": "Two-Stage Heat Pump",
+          "description": "Enable two-stage mode for dual-stage heat pumps."
+        },
+        "stage_on_lag_time": {
+          "name": "Stage On Lag Time",
+          "description": "Minutes between activating successive stages (1–240)."
+        },
+        "stage_off_lag_time": {
+          "name": "Stage Off Lag Time",
+          "description": "Seconds between deactivating successive stages (1–240)."
+        },
+        "rotate_cycles": {
+          "name": "Rotate Cycles",
+          "description": "Number of on/off cycles before rotating heat pumps, or 'off' to disable (1–240)."
+        },
+        "rotate_time": {
+          "name": "Rotate Time",
+          "description": "Hours of run time before rotating heat pumps, or 'off' to disable (1–240)."
+        },
+        "off_staging": {
+          "name": "Off Staging",
+          "description": "If enabled, all heat pumps stage off simultaneously."
+        }
+      }
+    },
+    "set_system_config": {
+      "name": "Set System Configuration",
+      "description": "Configure general system parameters for a SensorLinx device. At least one parameter must be provided.",
+      "fields": {
+        "device_id": {
+          "name": "Device",
+          "description": "The SensorLinx device to control."
+        },
+        "weather_shutdown_lag_time": {
+          "name": "Weather Shutdown Lag Time",
+          "description": "Hours to wait before entering weather shutdown after the threshold is met (0–240)."
+        },
+        "heat_cool_switch_delay": {
+          "name": "Heat/Cool Switch Delay",
+          "description": "Seconds to delay when switching between heat and cool modes (30–600)."
+        },
+        "wide_priority_differential": {
+          "name": "Wide Priority Differential",
+          "description": "When enabled, the tank target exceeds the setpoint by the differential before switching modes."
+        }
+      }
     }
   },
   "entity": {
@@ -106,6 +278,24 @@
       },
       "dhw_differential": {
         "name": "DHW Differential"
+      },
+      "dhw_target_temp": {
+        "name": "DHW Target Temperature"
+      },
+      "cwsd_temp": {
+        "name": "CWSD Temperature"
+      },
+      "cold_outdoor_reset": {
+        "name": "Cold Outdoor Reset Temperature"
+      },
+      "cold_min_tank_temp": {
+        "name": "Cold Min Tank Temperature"
+      },
+      "cold_max_tank_temp": {
+        "name": "Cold Max Tank Temperature"
+      },
+      "cold_differential": {
+        "name": "Cold Differential"
       }
     },
     "binary_sensor": {
@@ -117,6 +307,9 @@
       },
       "reversing_valve": {
         "name": "Reversing Valve"
+      },
+      "dhw_enabled": {
+        "name": "DHW Enabled"
       }
     }
   }
