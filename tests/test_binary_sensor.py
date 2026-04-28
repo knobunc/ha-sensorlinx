@@ -53,8 +53,8 @@ async def test_connected_sensor_none_value(hass, setup_integration, mock_sensorl
 
 
 async def test_demand_active_sensors(hass, setup_integration):
-    assert hass.states.get("binary_sensor.eco_controller_heat").state == "on"
-    assert hass.states.get("binary_sensor.eco_controller_cool").state == "off"
+    assert hass.states.get("binary_sensor.eco_controller_heat_demand").state == "on"
+    assert hass.states.get("binary_sensor.eco_controller_cool_demand").state == "off"
 
 
 async def test_demand_sensors_update(hass, setup_integration, mock_sensorlinx):
@@ -73,8 +73,8 @@ async def test_demand_sensors_update(hass, setup_integration, mock_sensorlinx):
     await coordinator.async_refresh()
     await hass.async_block_till_done()
 
-    assert hass.states.get("binary_sensor.eco_controller_heat").state == "off"
-    assert hass.states.get("binary_sensor.eco_controller_cool").state == "on"
+    assert hass.states.get("binary_sensor.eco_controller_heat_demand").state == "off"
+    assert hass.states.get("binary_sensor.eco_controller_cool_demand").state == "on"
 
 
 # ---------------------------------------------------------------------------

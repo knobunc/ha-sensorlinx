@@ -182,8 +182,6 @@ class SensorLinxConnectedSensor(SensorLinxBaseEntity, BinarySensorEntity):
 class SensorLinxDemandActiveSensor(SensorLinxBaseEntity, BinarySensorEntity):
     """Whether a demand channel (e.g. Heat, Cool) is active."""
 
-    _attr_device_class = BinarySensorDeviceClass.RUNNING
-
     def __init__(
         self,
         coordinator: SensorLinxCoordinator,
@@ -195,7 +193,7 @@ class SensorLinxDemandActiveSensor(SensorLinxBaseEntity, BinarySensorEntity):
         """Initialise the demand-active sensor for a specific channel index."""
         super().__init__(coordinator, building_id, sync_code)
         self._index = index
-        self._attr_name = title
+        self._attr_name = f"{title} Demand"
         self._attr_unique_id = f"{sync_code}_demand_{index}"
 
     @property
