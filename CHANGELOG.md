@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.8.0] - 2026-04-28
+
+### Changed
+- **Diagnostic entity category** — HVAC priority, all config temperature sensors (WWSD, outdoor reset, min/max tank, DHW target, CWSD, cold outdoor reset, cold min/max tank), all config delta sensors (heat differential, DHW differential, cold differential), and DHW enabled binary sensor are now `EntityCategory.DIAGNOSTIC`, placing them in the Diagnostic section of the device card.
+
 ## [0.7.0] - 2026-04-27
 
 ### Added

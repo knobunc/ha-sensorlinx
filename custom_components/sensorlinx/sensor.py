@@ -8,7 +8,7 @@ from homeassistant.components.sensor import (
     SensorStateClass,
 )
 from homeassistant.config_entries import ConfigEntry
-from homeassistant.const import PERCENTAGE, UnitOfTemperature
+from homeassistant.const import PERCENTAGE, EntityCategory, UnitOfTemperature
 from homeassistant.core import HomeAssistant, callback
 from homeassistant.helpers import entity_registry as er
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -313,6 +313,7 @@ class SensorLinxPrioritySensor(SensorLinxBaseEntity, SensorEntity):
 
     _attr_translation_key = "hvac_priority"
     _attr_device_class = SensorDeviceClass.ENUM
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_options = ["heat", "cool", "auto"]
     _attr_icon = "mdi:hvac"
 
@@ -338,6 +339,7 @@ class SensorLinxConfigTemperatureSensor(SensorLinxBaseEntity, SensorEntity):
     """A scalar configuration temperature (setpoint) for a device."""
 
     _attr_device_class = SensorDeviceClass.TEMPERATURE
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfTemperature.FAHRENHEIT
     _attr_suggested_display_precision = 1
@@ -372,6 +374,7 @@ class SensorLinxConfigTemperatureSensor(SensorLinxBaseEntity, SensorEntity):
 class SensorLinxConfigDeltaSensor(SensorLinxBaseEntity, SensorEntity):
     """A temperature differential (delta) configuration value for a device."""
 
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfTemperature.FAHRENHEIT
     _attr_suggested_display_precision = 1
