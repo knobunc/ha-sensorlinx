@@ -2,6 +2,18 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.7.0] - 2026-04-27
+
+### Added
+- **Weather platform** — building-level `WeatherEntity` exposing current conditions (temperature, humidity, pressure, wind, cloud coverage) and hourly forecast from the SensorLinx API. OWM condition IDs mapped to HA condition strings. Unique ID: `{building_id}_weather`.
+- **DHW sensors** — `SensorLinxDHWEnabledSensor` binary sensor (`dhwOn`) and `dhw_target_temp` config temperature sensor (`dhwT`).
+- **Cold tank config sensors** — five new sensors for cold-side configuration: `cwsd_temp` (sentinel 32 = off), `cold_outdoor_reset` (sentinel -41 = off), `cold_min_tank_temp`, `cold_max_tank_temp`, `cold_differential`.
+- **6 new services** — `set_hot_tank_config`, `set_cold_tank_config`, `set_dhw_config`, `set_backup_config`, `set_staging_config`, `set_system_config`. Services group related device parameter setters; temperature fields accept °F values or `"off"` where applicable.
+- **Diagnostics** — added `has_weather` (building-level), `dhw_enabled`, and `has_cold_tank` (device-level) to diagnostics output.
+
+### Changed
+- **pysensorlinx requirement** bumped from `>=0.1.9` to `>=0.2.3`.
+
 ## [0.6.7] - 2026-04-03
 
 ### Fixed

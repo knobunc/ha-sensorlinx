@@ -48,13 +48,17 @@ async def async_get_config_entry_diagnostics(
                     "pumps": len(device.get("pumps") or []),
                     "has_backup": device.get("backup") is not None,
                     "has_reversing_valve": device.get("reversingValve") is not None,
+                    "dhw_enabled": device.get("dhwOn"),
+                    "has_cold_tank": "cwsd" in device,
                     "wsd_keys": list((device.get("wsd") or {}).keys()),
                 }
             )
+        building = building_data["building"]
         buildings.append(
             {
                 "id": building_id,
-                "name": building_data["building"].get("name"),
+                "name": building.get("name"),
+                "has_weather": building.get("weather") is not None,
                 "device_count": len(devices),
                 "devices": devices,
             }

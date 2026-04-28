@@ -48,6 +48,18 @@ async def test_entity_registry_populated_after_setup(hass, setup_integration):
     assert "ABC123_reversing_valve" in unique_ids
     assert "ABC123_wsd_wwsd" in unique_ids
     assert "ABC123_wsd_cwsd" in unique_ids
+    assert "ABC123_dhw_enabled" in unique_ids
+
+    # Config sensor entities — DHW + cold tank
+    assert "ABC123_dhw_target_temp" in unique_ids
+    assert "ABC123_cwsd_temp" in unique_ids
+    assert "ABC123_cold_outdoor_reset" in unique_ids
+    assert "ABC123_cold_min_tank_temp" in unique_ids
+    assert "ABC123_cold_max_tank_temp" in unique_ids
+    assert "ABC123_cold_differential" in unique_ids
+
+    # Weather entity
+    assert "bld-1_weather" in unique_ids
 
 
 async def test_device_registry_populated_after_setup(hass, setup_integration):
@@ -509,3 +521,149 @@ async def test_service_set_permanent_demand_requires_at_least_one_flag(
             {"device_id": _ha_device_id(hass, "ABC123")},
             blocking=True,
         )
+
+
+# ---------------------------------------------------------------------------
+# New service calls (hot tank, cold tank, DHW, backup, staging, system)
+# ---------------------------------------------------------------------------
+
+
+async def test_service_set_hot_tank_config(hass, setup_integration, mock_sensorlinx):
+    """set_hot_tank_config passes Temperature objects to the API."""
+    _, client = mock_sensorlinx
+
+    await hass.services.async_call(
+        "sensorlinx",
+        "set_hot_tank_config",
+        {
+            "device_id": _ha_device_id(hass, "ABC123"),
+            "warm_weather_shutdown": 80.0,
+            "min_temp": 100.0,
+        },
+        blocking=True,
+    )
+
+    client.set_device_parameter.assert_awaited_once()
+    kw = client.set_device_parameter.call_args.kwargs
+    assert kw["warm_weather_shutdown"].to_fahrenheit() == pytest.approx(80.0)
+    assert kw["hot_tank_min_temp"].to_fahrenheit() == pytest.approx(100.0)
+
+
+async def test_service_set_hot_tank_config_off(
+    hass, setup_integration, mock_sensorlinx
+):
+    """set_hot_tank_config accepts 'off' for warm_weather_shutdown."""
+    _, client = mock_sensorlinx
+
+    await hass.services.async_call(
+        "sensorlinx",
+        "set_hot_tank_config",
+        {
+            "device_id": _ha_device_id(hass, "ABC123"),
+            "warm_weather_shutdown": "off",
+        },
+        blocking=True,
+    )
+
+    kw = client.set_device_parameter.call_args.kwargs
+    assert kw["warm_weather_shutdown"] == "off"
+
+
+async def test_service_set_cold_tank_config(hass, setup_integration, mock_sensorlinx):
+    """set_cold_tank_config passes correct kwargs to the API."""
+    _, client = mock_sensorlinx
+
+    await hass.services.async_call(
+        "sensorlinx",
+        "set_cold_tank_config",
+        {
+            "device_id": _ha_device_id(hass, "ABC123"),
+            "cold_weather_shutdown": 75.0,
+            "differential": 8.0,
+        },
+        blocking=True,
+    )
+
+    kw = client.set_device_parameter.call_args.kwargs
+    assert kw["cold_weather_shutdown"].to_fahrenheit() == pytest.approx(75.0)
+    assert kw["cold_tank_differential"].to_fahrenheit() == pytest.approx(8.0)
+
+
+async def test_service_set_dhw_config(hass, setup_integration, mock_sensorlinx):
+    """set_dhw_config passes DHW parameters to the API."""
+    _, client = mock_sensorlinx
+
+    await hass.services.async_call(
+        "sensorlinx",
+        "set_dhw_config",
+        {
+            "device_id": _ha_device_id(hass, "ABC123"),
+            "enabled": True,
+            "target_temp": 120.0,
+        },
+        blocking=True,
+    )
+
+    kw = client.set_device_parameter.call_args.kwargs
+    assert kw["dhw_enabled"] is True
+    assert kw["dhw_target_temp"].to_fahrenheit() == pytest.approx(120.0)
+
+
+async def test_service_set_backup_config(hass, setup_integration, mock_sensorlinx):
+    """set_backup_config passes backup parameters to the API."""
+    _, client = mock_sensorlinx
+
+    await hass.services.async_call(
+        "sensorlinx",
+        "set_backup_config",
+        {
+            "device_id": _ha_device_id(hass, "ABC123"),
+            "lag_time": 30,
+            "temp": "off",
+        },
+        blocking=True,
+    )
+
+    kw = client.set_device_parameter.call_args.kwargs
+    assert kw["backup_lag_time"] == 30
+    assert kw["backup_temp"] == "off"
+
+
+async def test_service_set_staging_config(hass, setup_integration, mock_sensorlinx):
+    """set_staging_config passes staging parameters to the API."""
+    _, client = mock_sensorlinx
+
+    await hass.services.async_call(
+        "sensorlinx",
+        "set_staging_config",
+        {
+            "device_id": _ha_device_id(hass, "ABC123"),
+            "number_of_stages": 2,
+            "off_staging": True,
+        },
+        blocking=True,
+    )
+
+    kw = client.set_device_parameter.call_args.kwargs
+    assert kw["number_of_stages"] == 2
+    assert kw["off_staging"] is True
+
+
+async def test_service_set_system_config(hass, setup_integration, mock_sensorlinx):
+    """set_system_config passes system parameters to the API."""
+    _, client = mock_sensorlinx
+
+    await hass.services.async_call(
+        "sensorlinx",
+        "set_system_config",
+        {
+            "device_id": _ha_device_id(hass, "ABC123"),
+            "weather_shutdown_lag_time": 4,
+            "heat_cool_switch_delay": 120,
+        },
+        blocking=True,
+    )
+
+    kw = client.set_device_parameter.call_args.kwargs
+    assert kw["weather_shutdown_lag_time"] == 4
+    assert kw["heat_cool_switch_delay"] == 120

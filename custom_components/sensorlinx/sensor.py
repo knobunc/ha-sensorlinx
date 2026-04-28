@@ -98,13 +98,18 @@ async def async_setup_entry(
                         )
 
                 # Config temperature sensors (scalar °F setpoints)
-                _TEMP_CFG: list[tuple[str, str, str, int | None]] = [
-                    ("wwsd", "wwsd_temp", "wwsd_temp", 32),
-                    ("dot", "outdoor_reset", "outdoor_reset", -41),
-                    ("mbt", "min_tank_temp", "min_tank_temp", None),
-                    ("dbt", "max_tank_temp", "max_tank_temp", None),
+                _TEMP_CFG: list[tuple[str, str, int | None]] = [
+                    ("wwsd", "wwsd_temp", 32),
+                    ("dot", "outdoor_reset", -41),
+                    ("mbt", "min_tank_temp", None),
+                    ("dbt", "max_tank_temp", None),
+                    ("dhwT", "dhw_target_temp", None),
+                    ("cwsd", "cwsd_temp", 32),
+                    ("cdot", "cold_outdoor_reset", -41),
+                    ("mst", "cold_min_tank_temp", None),
+                    ("dst", "cold_max_tank_temp", None),
                 ]
-                for cfg_key, uid_suffix, t_key, sentinel in _TEMP_CFG:
+                for cfg_key, uid_suffix, sentinel in _TEMP_CFG:
                     if cfg_key in device:
                         uid = f"{sync_code}_{uid_suffix}"
                         if _needs(uid):
@@ -115,17 +120,17 @@ async def async_setup_entry(
                                     sync_code,
                                     cfg_key,
                                     uid_suffix,
-                                    t_key,
                                     sentinel,
                                 )
                             )
 
                 # Config delta sensors (°F differential values)
-                _DELTA_CFG: list[tuple[str, str, str]] = [
-                    ("htDif", "heat_differential", "heat_differential"),
-                    ("auxDif", "dhw_differential", "dhw_differential"),
+                _DELTA_CFG: list[tuple[str, str]] = [
+                    ("htDif", "heat_differential"),
+                    ("auxDif", "dhw_differential"),
+                    ("clDif", "cold_differential"),
                 ]
-                for cfg_key, uid_suffix, t_key in _DELTA_CFG:
+                for cfg_key, uid_suffix in _DELTA_CFG:
                     if cfg_key in device:
                         uid = f"{sync_code}_{uid_suffix}"
                         if _needs(uid):
@@ -136,7 +141,6 @@ async def async_setup_entry(
                                     sync_code,
                                     cfg_key,
                                     uid_suffix,
-                                    t_key,
                                 )
                             )
 
@@ -346,13 +350,12 @@ class SensorLinxConfigTemperatureSensor(SensorLinxBaseEntity, SensorEntity):
         sync_code: str,
         api_key: str,
         uid_suffix: str,
-        translation_key: str,
         sentinel: int | None = None,
     ) -> None:
         super().__init__(coordinator, building_id, sync_code)
         self._api_key = api_key
         self._sentinel = sentinel
-        self._attr_translation_key = translation_key
+        self._attr_translation_key = uid_suffix
         self._attr_unique_id = f"{sync_code}_{uid_suffix}"
 
     @property
@@ -381,11 +384,10 @@ class SensorLinxConfigDeltaSensor(SensorLinxBaseEntity, SensorEntity):
         sync_code: str,
         api_key: str,
         uid_suffix: str,
-        translation_key: str,
     ) -> None:
         super().__init__(coordinator, building_id, sync_code)
         self._api_key = api_key
-        self._attr_translation_key = translation_key
+        self._attr_translation_key = uid_suffix
         self._attr_unique_id = f"{sync_code}_{uid_suffix}"
 
     @property

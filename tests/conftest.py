@@ -10,7 +10,43 @@ from homeassistant.helpers import device_registry as dr
 # Fake API data — mirrors what pysensorlinx.Sensorlinx returns
 # ---------------------------------------------------------------------------
 
-FAKE_BUILDINGS = [{"id": "bld-1", "name": "Home"}]
+FAKE_BUILDINGS = [
+    {
+        "id": "bld-1",
+        "name": "Home",
+        "weather": {
+            "weather": {
+                "temp": 72,
+                "feelsLike": 70,
+                "min": 65,
+                "max": 78,
+                "pressure": 1013,
+                "humidity": 55,
+                "wind": 5.5,
+                "windDir": 180,
+                "clouds": 40,
+                "snow": 0,
+                "rain": 0,
+                "description": "partly cloudy",
+                "icon": "03d",
+                "weatherId": 802,
+            },
+            "forecast": [
+                {
+                    "time": "2026-04-24T12:00:00Z",
+                    "pop": 20,
+                    "snow": 0,
+                    "temp": 75,
+                    "min": 68,
+                    "max": 80,
+                    "description": "cloudy",
+                    "icon": "04d",
+                    "weatherId": 804,
+                }
+            ],
+        },
+    }
+]
 
 FAKE_DEVICES = [
     {
@@ -27,6 +63,13 @@ FAKE_DEVICES = [
         "mbt": 90,
         "dbt": 105,
         "auxDif": 3,
+        "dhwOn": True,
+        "dhwT": 120,
+        "cwsd": 75,
+        "cdot": 90,
+        "clDif": 8,
+        "mst": 45,
+        "dst": 60,
         "temperatures": [
             {
                 "enabled": True,
