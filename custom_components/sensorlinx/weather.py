@@ -22,7 +22,7 @@ from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
-from .const import DOMAIN, MANUFACTURER
+from .const import DOMAIN
 from .coordinator import SensorLinxCoordinator
 
 _LOGGER = logging.getLogger(__name__)
@@ -123,7 +123,7 @@ class SensorLinxWeather(CoordinatorEntity[SensorLinxCoordinator], WeatherEntity)
     @property
     def device_info(self) -> DeviceInfo | None:
         try:
-            device = self.coordinator.data[self._building_id]["devices"][
+            self.coordinator.data[self._building_id]["devices"][
                 self._sync_code
             ]["device"]
         except KeyError:
