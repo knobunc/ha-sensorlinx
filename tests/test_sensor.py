@@ -375,11 +375,9 @@ async def test_activated_state_sensor_updates(hass, setup_integration, mock_sens
     assert hass.states.get("sensor.eco_controller_tank_state").state == "satisfied"
 
 
-async def test_activated_state_off_without_field(hass, setup_integration):
-    """Channels without activatedState show 'off'."""
-    state = hass.states.get("sensor.eco_controller_outdoor_state")
-    assert state is not None
-    assert state.state == "off"
+async def test_activated_state_not_created_without_target(hass, setup_integration):
+    """Channels without a target don't get a state sensor."""
+    assert hass.states.get("sensor.eco_controller_outdoor_state") is None
 
 
 async def test_device_info(hass, setup_integration):

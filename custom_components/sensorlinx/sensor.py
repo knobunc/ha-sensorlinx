@@ -74,17 +74,18 @@ async def async_setup_entry(
                                     temp.get("title") or f"Temp {idx + 1}",
                                 )
                             )
-                        uid = f"{sync_code}_temp_state_{idx}"
-                        if _needs(uid):
-                            new_entities.append(
-                                SensorLinxActivatedStateSensor(
-                                    coordinator,
-                                    building_id,
-                                    sync_code,
-                                    idx,
-                                    temp.get("title") or f"Temp {idx + 1}",
+                        if temp.get("target") is not None:
+                            uid = f"{sync_code}_temp_state_{idx}"
+                            if _needs(uid):
+                                new_entities.append(
+                                    SensorLinxActivatedStateSensor(
+                                        coordinator,
+                                        building_id,
+                                        sync_code,
+                                        idx,
+                                        temp.get("title") or f"Temp {idx + 1}",
+                                    )
                                 )
-                            )
                         if temp.get("target") is not None:
                             uid = f"{sync_code}_temp_target_{idx}"
                             if _needs(uid):
