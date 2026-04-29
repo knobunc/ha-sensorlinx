@@ -74,18 +74,17 @@ async def async_setup_entry(
                                     temp.get("title") or f"Temp {idx + 1}",
                                 )
                             )
-                        if temp.get("activatedState") is not None:
-                            uid = f"{sync_code}_temp_state_{idx}"
-                            if _needs(uid):
-                                new_entities.append(
-                                    SensorLinxActivatedStateSensor(
-                                        coordinator,
-                                        building_id,
-                                        sync_code,
-                                        idx,
-                                        temp.get("title") or f"Temp {idx + 1}",
-                                    )
+                        uid = f"{sync_code}_temp_state_{idx}"
+                        if _needs(uid):
+                            new_entities.append(
+                                SensorLinxActivatedStateSensor(
+                                    coordinator,
+                                    building_id,
+                                    sync_code,
+                                    idx,
+                                    temp.get("title") or f"Temp {idx + 1}",
                                 )
+                            )
                         if temp.get("target") is not None:
                             uid = f"{sync_code}_temp_target_{idx}"
                             if _needs(uid):
@@ -320,6 +319,8 @@ class SensorLinxTemperatureTargetSensor(SensorLinxBaseEntity, SensorEntity):
 class SensorLinxActivatedStateSensor(SensorLinxBaseEntity, SensorEntity):
     """Operational state (heating, cooling, satisfied, …) for a temperature channel."""
 
+    _attr_device_class = SensorDeviceClass.ENUM
+    _attr_options = ["off", "satisfied", "heat", "cool"]
     _attr_icon = "mdi:state-machine"
 
     def __init__(
@@ -343,7 +344,7 @@ class SensorLinxActivatedStateSensor(SensorLinxBaseEntity, SensorEntity):
         temps = device.get("temperatures") or []
         if self._index >= len(temps):
             return None
-        return temps[self._index].get("activatedState")
+        return temps[self._index].get("activatedState") or "off"
 
 
 _PRIORITY_MAP: dict[int, str] = {0: "heat", 1: "cool", 2: "auto"}

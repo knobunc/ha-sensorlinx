@@ -29,7 +29,7 @@ async def test_temperature_sensor_state(hass, setup_integration):
     assert float(tank.state) == pytest.approx(49.2, abs=0.1)
     # target_temperature must be in the same unit as native_value (Celsius in tests)
     assert tank.attributes.get("target_temperature") == pytest.approx(54.4, abs=0.1)
-    assert tank.attributes.get("state") == "heating"
+    assert tank.attributes.get("state") == "heat"
 
     outdoor = hass.states.get("sensor.eco_controller_outdoor")
     assert outdoor is not None
@@ -354,7 +354,7 @@ async def test_activated_state_sensor(hass, setup_integration):
     """Activated state sensor exposes activatedState from the temperature channel."""
     state = hass.states.get("sensor.eco_controller_tank_state")
     assert state is not None
-    assert state.state == "heating"
+    assert state.state == "heat"
 
 
 async def test_activated_state_sensor_updates(hass, setup_integration, mock_sensorlinx):
@@ -375,9 +375,11 @@ async def test_activated_state_sensor_updates(hass, setup_integration, mock_sens
     assert hass.states.get("sensor.eco_controller_tank_state").state == "satisfied"
 
 
-async def test_activated_state_not_created_without_field(hass, setup_integration):
-    """Channels without activatedState don't get a state sensor."""
-    assert hass.states.get("sensor.eco_controller_outdoor_state") is None
+async def test_activated_state_off_without_field(hass, setup_integration):
+    """Channels without activatedState show 'off'."""
+    state = hass.states.get("sensor.eco_controller_outdoor_state")
+    assert state is not None
+    assert state.state == "off"
 
 
 async def test_device_info(hass, setup_integration):
