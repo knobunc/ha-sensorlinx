@@ -18,6 +18,7 @@ from homeassistant.const import (
     UnitOfTemperature,
 )
 from homeassistant.core import HomeAssistant, callback
+from homeassistant.helpers.entity import DeviceInfo
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
@@ -76,6 +77,10 @@ async def async_setup_entry(
             )
             if not has_weather:
                 continue
+            devices = building_data.get("devices", {})
+            if not devices:
+                continue
+            first_sync_code = next(iter(devices))
             uid = f"{building_id}_weather"
             if uid not in _added:
                 _added.add(uid)
@@ -83,7 +88,7 @@ async def async_setup_entry(
                     SensorLinxWeather(
                         coordinator,
                         building_id,
-                        building.get("name", building_id),
+                        first_sync_code,
                     )
                 )
         if new:
@@ -107,12 +112,25 @@ class SensorLinxWeather(CoordinatorEntity[SensorLinxCoordinator], WeatherEntity)
         self,
         coordinator: SensorLinxCoordinator,
         building_id: str,
-        building_name: str,
+        sync_code: str,
     ) -> None:
         super().__init__(coordinator)
         self._building_id = building_id
+        self._sync_code = sync_code
         self._attr_unique_id = f"{building_id}_weather"
-        self._attr_name = f"{building_name} Weather"
+        self._attr_translation_key = "weather"
+
+    @property
+    def device_info(self) -> DeviceInfo | None:
+        try:
+            self.coordinator.data[self._building_id]["devices"][self._sync_code][
+                "device"
+            ]
+        except KeyError:
+            return None
+        return DeviceInfo(
+            identifiers={(DOMAIN, self._sync_code)},
+        )
 
     def _weather(self) -> dict[str, Any] | None:
         try:
