@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import logging
 from datetime import datetime, timezone
 from typing import Any
 
@@ -22,6 +23,8 @@ from homeassistant.helpers.update_coordinator import CoordinatorEntity
 
 from .const import DOMAIN
 from .coordinator import SensorLinxCoordinator
+
+_LOGGER = logging.getLogger(__name__)
 
 _OWM_TO_HA: dict[int, str] = {}
 for _code in range(200, 300):
@@ -61,9 +64,17 @@ async def async_setup_entry(
     @callback
     def _async_add_weather() -> None:
         new: list[WeatherEntity] = []
+        _LOGGER.debug("Checking %d building(s) for weather data", len(coordinator.data))
         for building_id, building_data in coordinator.data.items():
             building = building_data["building"]
-            if building.get("weather") is None:
+            has_weather = building.get("weather") is not None
+            _LOGGER.debug(
+                "Building %s: has_weather=%s, keys=%s",
+                building_id,
+                has_weather,
+                list(building.keys()),
+            )
+            if not has_weather:
                 continue
             uid = f"{building_id}_weather"
             if uid not in _added:
@@ -76,7 +87,10 @@ async def async_setup_entry(
                     )
                 )
         if new:
+            _LOGGER.debug("Adding %d weather entity/entities", len(new))
             async_add_entities(new)
+        else:
+            _LOGGER.debug("No new weather entities to add")
 
     _async_add_weather()
     entry.async_on_unload(coordinator.async_add_listener(_async_add_weather))
