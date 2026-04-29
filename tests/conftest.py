@@ -77,7 +77,7 @@ FAKE_DEVICES = [
                 "current": 120.5,
                 "target": 130.0,
                 "activated": True,
-                "activatedState": "heating",
+                "activatedState": "heat",
             },
             {
                 "enabled": True,

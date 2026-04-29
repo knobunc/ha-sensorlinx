@@ -2,6 +2,13 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.4] - 2026-04-28
+
+### Fixed
+- **Activated state sensor for all channels** — activated state sensor is now created for all enabled temperature channels, not just those with a non-null `activatedState` at setup time. Channels where the API returns `None` show "off" instead of being unavailable.
+- **Activated state enum** — sensor now uses `SensorDeviceClass.ENUM` with options `off`, `satisfied`, `heat`, `cool`.
+- **Test fixture** — corrected `activatedState` value from `"heating"` to `"heat"` to match live API.
+
 ## [0.9.3] - 2026-04-28
 
 ### Fixed
