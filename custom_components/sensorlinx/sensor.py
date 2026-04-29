@@ -248,9 +248,9 @@ class SensorLinxTemperatureSensor(SensorLinxBaseEntity, SensorEntity):
                 )
             attrs["target_temperature"] = round(target, 1)
         if t.get("activatedState"):
-            attrs["state"] = t["activatedState"]
+            attrs["operation"] = t["activatedState"].capitalize()
         elif "activated" in t:
-            attrs["state"] = "active" if t["activated"] else "idle"
+            attrs["operation"] = "Active" if t["activated"] else "Idle"
         return attrs
 
 
@@ -311,9 +311,9 @@ class SensorLinxTemperatureTargetSensor(SensorLinxBaseEntity, SensorEntity):
                 )
             attrs["target_temperature"] = round(target, 1)
         if t.get("activatedState"):
-            attrs["state"] = t["activatedState"]
+            attrs["operation"] = t["activatedState"].capitalize()
         elif "activated" in t:
-            attrs["state"] = "active" if t["activated"] else "idle"
+            attrs["operation"] = "Active" if t["activated"] else "Idle"
         return attrs
 
 

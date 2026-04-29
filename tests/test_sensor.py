@@ -29,7 +29,7 @@ async def test_temperature_sensor_state(hass, setup_integration):
     assert float(tank.state) == pytest.approx(49.2, abs=0.1)
     # target_temperature must be in the same unit as native_value (Celsius in tests)
     assert tank.attributes.get("target_temperature") == pytest.approx(54.4, abs=0.1)
-    assert tank.attributes.get("state") == "heat"
+    assert tank.attributes.get("operation") == "Heat"
 
     outdoor = hass.states.get("sensor.eco_controller_outdoor")
     assert outdoor is not None
@@ -60,10 +60,10 @@ async def test_temperature_activated_without_activated_state(
     await hass.async_block_till_done()
 
     tank = hass.states.get("sensor.eco_controller_tank")
-    assert tank.attributes.get("state") == "active"
+    assert tank.attributes.get("operation") == "Active"
 
     outdoor = hass.states.get("sensor.eco_controller_outdoor")
-    assert outdoor.attributes.get("state") == "idle"
+    assert outdoor.attributes.get("operation") == "Idle"
 
 
 async def test_temperature_missing_current_value(
@@ -102,7 +102,7 @@ async def test_temperature_no_target_no_state_attrs(
 
     state = hass.states.get("sensor.eco_controller_tank")
     assert "target_temperature" not in state.attributes
-    assert "state" not in state.attributes
+    assert "operation" not in state.attributes
 
 
 async def test_temperature_target_in_fahrenheit(

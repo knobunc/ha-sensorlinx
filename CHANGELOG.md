@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.7] - 2026-04-29
+
+### Changed
+- **Operation attribute** — renamed `state` extra attribute on temperature and target sensors to `operation` to avoid collision with entity state. Values are now capitalized (Heat, Satisfied, Cool, Active, Idle).
+
 ## [0.9.6] - 2026-04-28
 
 ### Changed

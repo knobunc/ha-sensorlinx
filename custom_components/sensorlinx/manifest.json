@@ -10,5 +10,5 @@
   "loggers": ["custom_components.sensorlinx"],
   "quality_scale": "gold",
   "requirements": ["pysensorlinx>=0.2.3"],
-  "version": "0.9.6"
+  "version": "0.9.7"
 }
