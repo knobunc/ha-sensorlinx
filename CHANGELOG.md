@@ -2,6 +2,12 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.5] - 2026-04-28
+
+### Changed
+- **Diagnostic entity category** — stage, pump, and reversing valve binary sensors moved to `EntityCategory.DIAGNOSTIC`.
+- **Activated state sensor gated on target** — activated state sensor only created for temperature channels that have a target value (excludes read-only sensors like Outdoor).
+
 ## [0.9.4] - 2026-04-28
 
 ### Fixed

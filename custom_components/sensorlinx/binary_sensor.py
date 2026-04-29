@@ -213,6 +213,7 @@ class SensorLinxStageBinarySensor(SensorLinxBaseEntity, BinarySensorEntity):
     """Whether a heat pump stage is running."""
 
     _attr_device_class = BinarySensorDeviceClass.RUNNING
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -296,6 +297,7 @@ class SensorLinxPumpBinarySensor(SensorLinxBaseEntity, BinarySensorEntity):
     """Whether a pump is running."""
 
     _attr_device_class = BinarySensorDeviceClass.RUNNING
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
 
     def __init__(
         self,
@@ -328,6 +330,7 @@ class SensorLinxReversingValveBinarySensor(SensorLinxBaseEntity, BinarySensorEnt
     """Whether the reversing valve is activated (cooling mode)."""
 
     _attr_translation_key = "reversing_valve"
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_icon = "mdi:valve"
 
     def __init__(
