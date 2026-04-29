@@ -311,6 +311,11 @@
       "dhw_enabled": {
         "name": "DHW Enabled"
       }
+    },
+    "weather": {
+      "weather": {
+        "name": "Weather"
+      }
     }
   }
 }

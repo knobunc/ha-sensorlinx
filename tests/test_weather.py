@@ -8,13 +8,13 @@ from .conftest import CONF_DATA
 
 async def test_weather_entity_created(hass, setup_integration):
     """Weather entity is created for building with weather data."""
-    state = hass.states.get("weather.home_weather")
+    state = hass.states.get("weather.eco_controller_weather")
     assert state is not None
 
 
 async def test_weather_current_conditions(hass, setup_integration):
     """Weather entity reflects current conditions from building data."""
-    state = hass.states.get("weather.home_weather")
+    state = hass.states.get("weather.eco_controller_weather")
     assert state is not None
     # weatherId 802 → "cloudy"
     assert state.state == "cloudy"
@@ -26,17 +26,17 @@ async def test_weather_current_conditions(hass, setup_integration):
 
 async def test_weather_forecast_hourly(hass, setup_integration):
     """Weather entity provides hourly forecast."""
-    state = hass.states.get("weather.home_weather")
+    state = hass.states.get("weather.eco_controller_weather")
     assert state is not None
 
     forecast = await hass.services.async_call(
         "weather",
         "get_forecasts",
-        {"entity_id": "weather.home_weather", "type": "hourly"},
+        {"entity_id": "weather.eco_controller_weather", "type": "hourly"},
         blocking=True,
         return_response=True,
     )
-    fc = forecast["weather.home_weather"]["forecast"]
+    fc = forecast["weather.eco_controller_weather"]["forecast"]
     assert len(fc) == 1
     assert fc[0]["condition"] == "cloudy"
 
@@ -53,7 +53,7 @@ async def test_weather_not_created_without_data(
     await hass.config_entries.async_setup(entry.entry_id)
     await hass.async_block_till_done()
 
-    assert hass.states.get("weather.home_weather") is None
+    assert hass.states.get("weather.eco_controller_weather") is None
 
 
 async def test_weather_unavailable_when_data_removed(
@@ -67,6 +67,6 @@ async def test_weather_unavailable_when_data_removed(
     await coordinator.async_refresh()
     await hass.async_block_till_done()
 
-    state = hass.states.get("weather.home_weather")
+    state = hass.states.get("weather.eco_controller_weather")
     assert state is not None
     assert state.state == "unavailable"

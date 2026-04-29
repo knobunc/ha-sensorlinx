@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.3] - 2026-04-28
+
+### Fixed
+- **Weather entity linked to device** — weather entity now appears on the device card instead of as a standalone entity. Uses `translation_key` for the entity name.
+
 ## [0.9.2] - 2026-04-28
 
 ### Added
