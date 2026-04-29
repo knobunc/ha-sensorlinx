@@ -354,7 +354,7 @@ async def test_activated_state_sensor(hass, setup_integration):
     """Activated state sensor exposes activatedState from the temperature channel."""
     state = hass.states.get("sensor.eco_controller_tank_state")
     assert state is not None
-    assert state.state == "heat"
+    assert state.state == "Heat"
 
 
 async def test_activated_state_sensor_updates(hass, setup_integration, mock_sensorlinx):
@@ -372,7 +372,7 @@ async def test_activated_state_sensor_updates(hass, setup_integration, mock_sens
     client.get_devices.return_value = [device]
     await coordinator.async_refresh()
     await hass.async_block_till_done()
-    assert hass.states.get("sensor.eco_controller_tank_state").state == "satisfied"
+    assert hass.states.get("sensor.eco_controller_tank_state").state == "Satisfied"
 
 
 async def test_activated_state_not_created_without_target(hass, setup_integration):

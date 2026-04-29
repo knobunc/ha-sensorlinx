@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.9.6] - 2026-04-28
+
+### Changed
+- **Activated state capitalized** — enum options now display as `Off`, `Satisfied`, `Heat`, `Cool` instead of lowercase.
+
 ## [0.9.5] - 2026-04-28
 
 ### Changed
