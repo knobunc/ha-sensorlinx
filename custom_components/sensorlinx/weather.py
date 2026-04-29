@@ -123,9 +123,9 @@ class SensorLinxWeather(CoordinatorEntity[SensorLinxCoordinator], WeatherEntity)
     @property
     def device_info(self) -> DeviceInfo | None:
         try:
-            self.coordinator.data[self._building_id]["devices"][
-                self._sync_code
-            ]["device"]
+            self.coordinator.data[self._building_id]["devices"][self._sync_code][
+                "device"
+            ]
         except KeyError:
             return None
         return DeviceInfo(
