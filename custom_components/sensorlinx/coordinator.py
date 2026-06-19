@@ -9,6 +9,7 @@ from typing import Any
 from homeassistant.config_entries import ConfigEntryAuthFailed
 from homeassistant.const import CONF_EMAIL, CONF_PASSWORD
 from homeassistant.core import HomeAssistant
+from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.update_coordinator import DataUpdateCoordinator, UpdateFailed
 from pysensorlinx import InvalidCredentialsError, LoginError, Sensorlinx
 
@@ -118,3 +119,44 @@ class SensorLinxCoordinator(DataUpdateCoordinator[dict[str, dict]]):
             sum(len(b["devices"]) for b in data.values()),
         )
         return data
+
+    async def async_set_device_parameter(
+        self,
+        building_id: str,
+        device_id: str,
+        **kwargs: Any,
+    ) -> None:
+        """Write a device parameter, retrying once on auth expiry, then refresh."""
+        try:
+            async with asyncio.timeout(self.timeout):
+                try:
+                    await self.client.set_device_parameter(
+                        building_id=building_id,
+                        device_id=device_id,
+                        **kwargs,
+                    )
+                except (InvalidCredentialsError, LoginError):
+                    _LOGGER.debug(
+                        "Auth error during parameter write, attempting re-login"
+                    )
+                    await self.client.login(
+                        username=self.entry_data[CONF_EMAIL],
+                        password=self.entry_data[CONF_PASSWORD],
+                    )
+                    await self.client.set_device_parameter(
+                        building_id=building_id,
+                        device_id=device_id,
+                        **kwargs,
+                    )
+        except TimeoutError as err:
+            raise HomeAssistantError(
+                f"SensorLinx API timed out after {self.timeout}s"
+            ) from err
+        except (InvalidCredentialsError, LoginError) as err:
+            raise HomeAssistantError(
+                f"SensorLinx authentication failed: {err}"
+            ) from err
+        except RuntimeError as err:
+            raise HomeAssistantError(f"SensorLinx API error: {err}") from err
+
+        await self.async_request_refresh()

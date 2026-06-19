@@ -312,6 +312,61 @@
         "name": "DHW Enabled"
       }
     },
+    "switch": {
+      "dhw_switch": {
+        "name": "DHW Enabled"
+      },
+      "wwsd_switch": {
+        "name": "Warm Weather Shutdown"
+      },
+      "hot_outdoor_reset_switch": {
+        "name": "Hot Outdoor Reset"
+      },
+      "cwsd_switch": {
+        "name": "Cold Weather Shutdown"
+      },
+      "cold_outdoor_reset_switch": {
+        "name": "Cold Outdoor Reset"
+      }
+    },
+    "number": {
+      "dhw_target_temp_control": {
+        "name": "DHW Target Temperature"
+      },
+      "dhw_differential_control": {
+        "name": "DHW Differential"
+      },
+      "min_tank_temp_control": {
+        "name": "Min Tank Temperature"
+      },
+      "max_tank_temp_control": {
+        "name": "Max Tank Temperature"
+      },
+      "heat_differential_control": {
+        "name": "Heat Differential"
+      },
+      "wwsd_temp_control": {
+        "name": "WWSD Temperature"
+      },
+      "outdoor_reset_control": {
+        "name": "Outdoor Reset Temperature"
+      },
+      "cold_min_tank_temp_control": {
+        "name": "Cold Min Tank Temperature"
+      },
+      "cold_max_tank_temp_control": {
+        "name": "Cold Max Tank Temperature"
+      },
+      "cold_differential_control": {
+        "name": "Cold Differential"
+      },
+      "cwsd_temp_control": {
+        "name": "CWSD Temperature"
+      },
+      "cold_outdoor_reset_control": {
+        "name": "Cold Outdoor Reset Temperature"
+      }
+    },
     "weather": {
       "weather": {
         "name": "Weather"

@@ -20,10 +20,12 @@ pip install -r requirements_test.txt
 ```
 custom_components/sensorlinx/
   __init__.py        # entry setup/teardown, stale cleanup, async_remove_config_entry_device (BINARY_SENSOR, SENSOR, WEATHER)
-  coordinator.py     # DataUpdateCoordinator — polls buildings + devices, handles re-auth
-  entity.py          # SensorLinxBaseEntity (base class, device_info, availability)
+  coordinator.py     # DataUpdateCoordinator — polls buildings + devices, handles re-auth, async_set_device_parameter
+  entity.py          # SensorLinxBaseEntity (base class, device_info, availability, _api_device_id)
   sensor.py          # Demand (%) + temperature channel sensors
   binary_sensor.py   # Connected, demand, stages, backup, pumps, valve, relays, WSD
+  switch.py          # DHW enabled, WWSD, hot outdoor reset, CWSD, cold outdoor reset
+  number.py          # DHW/hot/cold tank temperature and differential controls
   config_flow.py     # User + reauth + options flows
   weather.py         # building-level WeatherEntity (current + hourly forecast)
   services.py        # set_hvac_mode_priority, set_permanent_demand, + 6 config services
@@ -39,6 +41,8 @@ tests/
   test_coordinator.py
   test_sensor.py
   test_binary_sensor.py
+  test_switch.py
+  test_number.py
   test_config_flow.py
   test_integration.py
   test_unload.py
@@ -89,6 +93,23 @@ coordinator.data = {
 | DHW enabled | `{sync_code}_dhw_enabled` |
 | Weather shutdown | `{sync_code}_wsd_{wsd_key}` |
 | Weather | `{building_id}_weather` |
+| DHW switch | `{sync_code}_dhw_switch` |
+| WWSD switch | `{sync_code}_wwsd_switch` |
+| Hot outdoor reset switch | `{sync_code}_hot_outdoor_reset_switch` |
+| CWSD switch | `{sync_code}_cwsd_switch` |
+| Cold outdoor reset switch | `{sync_code}_cold_outdoor_reset_switch` |
+| DHW target temp control | `{sync_code}_dhw_target_temp_control` |
+| DHW differential control | `{sync_code}_dhw_differential_control` |
+| Min tank temp control | `{sync_code}_min_tank_temp_control` |
+| Max tank temp control | `{sync_code}_max_tank_temp_control` |
+| Heat differential control | `{sync_code}_heat_differential_control` |
+| WWSD temp control | `{sync_code}_wwsd_temp_control` |
+| Outdoor reset control | `{sync_code}_outdoor_reset_control` |
+| Cold min tank temp control | `{sync_code}_cold_min_tank_temp_control` |
+| Cold max tank temp control | `{sync_code}_cold_max_tank_temp_control` |
+| Cold differential control | `{sync_code}_cold_differential_control` |
+| CWSD temp control | `{sync_code}_cwsd_temp_control` |
+| Cold outdoor reset control | `{sync_code}_cold_outdoor_reset_control` |
 
 ## Key constraints
 

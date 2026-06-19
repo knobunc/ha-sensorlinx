@@ -2,6 +2,14 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.0] - 2026-06-19
+
+### Added
+- **Switch entities** — 5 new controls: DHW enabled, warm weather shutdown, hot outdoor reset, cold weather shutdown, cold outdoor reset. Sentinel-based switches toggle features on/off via the API.
+- **Number entities** — 12 new controls for DHW target temperature, DHW differential, hot/cold tank min/max temperatures, heat/cold differentials, WWSD/CWSD temperatures, and outdoor reset temperatures. All writable via the HA UI.
+- **Coordinator write method** — `async_set_device_parameter` on `SensorLinxCoordinator` provides reauth-aware API writes for entity platforms.
+- **Base entity helper** — `_api_device_id` property on `SensorLinxBaseEntity` resolves the API device ID for write operations.
+
 ## [0.9.7] - 2026-04-29
 
 ### Changed

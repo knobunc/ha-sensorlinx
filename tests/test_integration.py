@@ -58,6 +58,27 @@ async def test_entity_registry_populated_after_setup(hass, setup_integration):
     assert "ABC123_cold_max_tank_temp" in unique_ids
     assert "ABC123_cold_differential" in unique_ids
 
+    # Switch entities
+    assert "ABC123_dhw_switch" in unique_ids
+    assert "ABC123_wwsd_switch" in unique_ids
+    assert "ABC123_hot_outdoor_reset_switch" in unique_ids
+    assert "ABC123_cwsd_switch" in unique_ids
+    assert "ABC123_cold_outdoor_reset_switch" in unique_ids
+
+    # Number entities
+    assert "ABC123_dhw_target_temp_control" in unique_ids
+    assert "ABC123_dhw_differential_control" in unique_ids
+    assert "ABC123_min_tank_temp_control" in unique_ids
+    assert "ABC123_max_tank_temp_control" in unique_ids
+    assert "ABC123_heat_differential_control" in unique_ids
+    assert "ABC123_wwsd_temp_control" in unique_ids
+    assert "ABC123_outdoor_reset_control" in unique_ids
+    assert "ABC123_cold_min_tank_temp_control" in unique_ids
+    assert "ABC123_cold_max_tank_temp_control" in unique_ids
+    assert "ABC123_cold_differential_control" in unique_ids
+    assert "ABC123_cwsd_temp_control" in unique_ids
+    assert "ABC123_cold_outdoor_reset_control" in unique_ids
+
     # Weather entity
     assert "bld-1_weather" in unique_ids
 
