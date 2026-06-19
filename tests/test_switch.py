@@ -5,14 +5,13 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers import entity_registry as er
 from pysensorlinx import Temperature
 
-from .conftest import CONF_DATA, FAKE_DEVICES
-
 from custom_components.sensorlinx.switch import (
+    _SENTINEL_SWITCHES,
     SensorLinxDHWSwitch,
     SensorLinxSentinelSwitch,
-    _SENTINEL_SWITCHES,
 )
 
+from .conftest import CONF_DATA, FAKE_DEVICES
 
 # ---------------------------------------------------------------------------
 # DHW switch

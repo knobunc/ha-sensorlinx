@@ -5,10 +5,9 @@ from homeassistant.const import EntityCategory
 from homeassistant.helpers import entity_registry as er
 from pysensorlinx import Temperature, TemperatureDelta
 
+from custom_components.sensorlinx.number import _NUMBER_ENTITIES, SensorLinxNumberEntity
+
 from .conftest import CONF_DATA, FAKE_DEVICES
-
-from custom_components.sensorlinx.number import SensorLinxNumberEntity, _NUMBER_ENTITIES
-
 
 # ---------------------------------------------------------------------------
 # All 12 numbers created
