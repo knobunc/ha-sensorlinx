@@ -386,7 +386,7 @@ class SensorLinxConfigTemperatureSensor(SensorLinxBaseEntity, SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfTemperature.FAHRENHEIT
-    _attr_suggested_display_precision = 1
+    _attr_suggested_display_precision = 0
     _attr_icon = "mdi:thermometer-lines"
 
     def __init__(
@@ -421,7 +421,7 @@ class SensorLinxConfigDeltaSensor(SensorLinxBaseEntity, SensorEntity):
     _attr_entity_category = EntityCategory.DIAGNOSTIC
     _attr_state_class = SensorStateClass.MEASUREMENT
     _attr_native_unit_of_measurement = UnitOfTemperature.FAHRENHEIT
-    _attr_suggested_display_precision = 1
+    _attr_suggested_display_precision = 0
     _attr_icon = "mdi:thermometer-plus"
 
     def __init__(

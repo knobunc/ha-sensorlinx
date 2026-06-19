@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.1] - 2026-06-19
+
+### Fixed
+- **Display precision** — config temperature sensors, delta sensors, and number controls now display whole integers instead of showing a trailing `.0`.
+
 ## [0.10.0] - 2026-06-19
 
 ### Added
