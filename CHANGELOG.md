@@ -2,10 +2,15 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.10.2] - 2026-06-19
+
+### Fixed
+- **Display precision** — number controls and diagnostic config sensors now return integer native values, eliminating the trailing `.0` in both number input boxes and sensor state displays. The API returns integers for all configuration setpoints.
+
 ## [0.10.1] - 2026-06-19
 
 ### Fixed
-- **Display precision** — config temperature sensors, delta sensors, and number controls now display whole integers instead of showing a trailing `.0`.
+- **Display precision** — set `suggested_display_precision = 0` on config temperature sensors, delta sensors, and number controls.
 
 ## [0.10.0] - 2026-06-19
 

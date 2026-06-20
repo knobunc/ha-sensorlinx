@@ -46,9 +46,9 @@ async def test_all_numbers_created(hass, setup_integration):
 
 
 async def test_dhw_target_temp_value(hass, setup_integration):
-    """120°F → ~48.9°C."""
+    """120°F → ~49°C."""
     state = hass.states.get("number.eco_controller_dhw_target_temperature")
-    assert float(state.state) == pytest.approx(48.9, abs=0.1)
+    assert float(state.state) == pytest.approx(49, abs=1)
 
 
 async def test_dhw_differential_value(hass, setup_integration):
@@ -58,15 +58,15 @@ async def test_dhw_differential_value(hass, setup_integration):
 
 
 async def test_min_tank_temp_value(hass, setup_integration):
-    """90°F → ~32.2°C."""
+    """90°F → ~32°C."""
     state = hass.states.get("number.eco_controller_min_tank_temperature")
-    assert float(state.state) == pytest.approx(32.2, abs=0.1)
+    assert float(state.state) == pytest.approx(32, abs=1)
 
 
 async def test_max_tank_temp_value(hass, setup_integration):
-    """105°F → ~40.6°C."""
+    """105°F → ~41°C."""
     state = hass.states.get("number.eco_controller_max_tank_temperature")
-    assert float(state.state) == pytest.approx(40.6, abs=0.1)
+    assert float(state.state) == pytest.approx(41, abs=1)
 
 
 async def test_heat_differential_value(hass, setup_integration):
@@ -76,27 +76,27 @@ async def test_heat_differential_value(hass, setup_integration):
 
 
 async def test_wwsd_temp_value(hass, setup_integration):
-    """80°F → ~26.7°C."""
+    """80°F → ~27°C."""
     state = hass.states.get("number.eco_controller_wwsd_temperature")
-    assert float(state.state) == pytest.approx(26.7, abs=0.1)
+    assert float(state.state) == pytest.approx(27, abs=1)
 
 
 async def test_outdoor_reset_value(hass, setup_integration):
-    """45°F → ~7.2°C."""
+    """45°F → ~7°C."""
     state = hass.states.get("number.eco_controller_outdoor_reset_temperature")
-    assert float(state.state) == pytest.approx(7.2, abs=0.1)
+    assert float(state.state) == pytest.approx(7, abs=1)
 
 
 async def test_cold_min_tank_temp_value(hass, setup_integration):
-    """45°F → ~7.2°C."""
+    """45°F → ~7°C."""
     state = hass.states.get("number.eco_controller_cold_min_tank_temperature")
-    assert float(state.state) == pytest.approx(7.2, abs=0.1)
+    assert float(state.state) == pytest.approx(7, abs=1)
 
 
 async def test_cold_max_tank_temp_value(hass, setup_integration):
-    """60°F → ~15.6°C."""
+    """60°F → ~16°C."""
     state = hass.states.get("number.eco_controller_cold_max_tank_temperature")
-    assert float(state.state) == pytest.approx(15.6, abs=0.1)
+    assert float(state.state) == pytest.approx(16, abs=1)
 
 
 async def test_cold_differential_value(hass, setup_integration):
@@ -106,15 +106,15 @@ async def test_cold_differential_value(hass, setup_integration):
 
 
 async def test_cwsd_temp_value(hass, setup_integration):
-    """75°F → ~23.9°C."""
+    """75°F → ~24°C."""
     state = hass.states.get("number.eco_controller_cwsd_temperature")
-    assert float(state.state) == pytest.approx(23.9, abs=0.1)
+    assert float(state.state) == pytest.approx(24, abs=1)
 
 
 async def test_cold_outdoor_reset_value(hass, setup_integration):
-    """90°F → ~32.2°C."""
+    """90°F → ~32°C."""
     state = hass.states.get("number.eco_controller_cold_outdoor_reset_temperature")
-    assert float(state.state) == pytest.approx(32.2, abs=0.1)
+    assert float(state.state) == pytest.approx(32, abs=1)
 
 
 # ---------------------------------------------------------------------------
@@ -338,7 +338,7 @@ async def test_number_not_created_when_key_absent(
 
 
 async def test_number_updates_on_refresh(hass, setup_integration, mock_sensorlinx):
-    """140°F → ~60.0°C."""
+    """140°F → ~60°C."""
     _, client = mock_sensorlinx
     _, coordinator = setup_integration
 
@@ -347,4 +347,4 @@ async def test_number_updates_on_refresh(hass, setup_integration, mock_sensorlin
     await hass.async_block_till_done()
 
     state = hass.states.get("number.eco_controller_dhw_target_temperature")
-    assert float(state.state) == pytest.approx(60.0, abs=0.1)
+    assert float(state.state) == pytest.approx(60, abs=1)

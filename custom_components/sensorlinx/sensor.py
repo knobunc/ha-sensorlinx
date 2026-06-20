@@ -412,7 +412,7 @@ class SensorLinxConfigTemperatureSensor(SensorLinxBaseEntity, SensorEntity):
         val = device.get(self._api_key)
         if val is None or val == self._sentinel:
             return None
-        return float(val)
+        return int(val)
 
 
 class SensorLinxConfigDeltaSensor(SensorLinxBaseEntity, SensorEntity):
@@ -443,4 +443,4 @@ class SensorLinxConfigDeltaSensor(SensorLinxBaseEntity, SensorEntity):
         if device is None:
             return None
         val = device.get(self._api_key)
-        return float(val) if val is not None else None
+        return int(val) if val is not None else None

@@ -166,7 +166,7 @@ class SensorLinxNumberEntity(SensorLinxBaseEntity, NumberEntity):
             return None
         if self._desc.sentinel is not None and val == self._desc.sentinel:
             return None
-        return float(val)
+        return int(val)
 
     async def async_set_native_value(self, value: float) -> None:
         if self._desc.is_delta:
