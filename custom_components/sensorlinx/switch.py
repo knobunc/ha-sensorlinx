@@ -32,6 +32,21 @@ class SentinelSwitchDescriptor:
     icon: str
 
 
+@dataclass(frozen=True)
+class BoolSwitchDescriptor:
+    """Describes a switch backed by a simple boolean device key."""
+
+    translation_key: str
+    device_key: str
+    api_param: str
+    icon: str
+
+
+_BOOL_SWITCHES: list[BoolSwitchDescriptor] = [
+    BoolSwitchDescriptor("permanent_hd_switch", "permHD", "permanent_hd", "mdi:fire"),
+    BoolSwitchDescriptor("permanent_cd_switch", "permCD", "permanent_cd", "mdi:snowflake"),
+]
+
 _SENTINEL_SWITCHES: list[SentinelSwitchDescriptor] = [
     SentinelSwitchDescriptor(
         translation_key="wwsd_switch",
@@ -98,6 +113,15 @@ async def async_setup_entry(
                         SensorLinxDHWSwitch(coordinator, building_id, sync_code)
                     )
 
+                for desc in _BOOL_SWITCHES:
+                    uid = f"{sync_code}_{desc.translation_key}"
+                    if desc.device_key in device and _needs(uid):
+                        new_entities.append(
+                            SensorLinxBoolSwitch(
+                                coordinator, building_id, sync_code, desc
+                            )
+                        )
+
                 for desc in _SENTINEL_SWITCHES:
                     uid = f"{sync_code}_{desc.translation_key}"
                     if desc.device_key in device and _needs(uid):
@@ -151,6 +175,46 @@ class SensorLinxDHWSwitch(SensorLinxBaseEntity, SwitchEntity):
     async def async_turn_off(self, **kwargs: Any) -> None:
         await self.coordinator.async_set_device_parameter(
             self._building_id, self._api_device_id, dhw_enabled=False
+        )
+
+
+class SensorLinxBoolSwitch(SensorLinxBaseEntity, SwitchEntity):
+    """Toggle a simple boolean device parameter."""
+
+    _attr_entity_category = EntityCategory.CONFIG
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+        descriptor: BoolSwitchDescriptor,
+    ) -> None:
+        super().__init__(coordinator, building_id, sync_code)
+        self._desc = descriptor
+        self._attr_translation_key = descriptor.translation_key
+        self._attr_unique_id = f"{sync_code}_{descriptor.translation_key}"
+        self._attr_icon = descriptor.icon
+
+    @property
+    def is_on(self) -> bool | None:
+        device = self._get_device()
+        if device is None:
+            return None
+        return _safe_bool(device.get(self._desc.device_key))
+
+    async def async_turn_on(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_device_parameter(
+            self._building_id,
+            self._api_device_id,
+            **{self._desc.api_param: True},
+        )
+
+    async def async_turn_off(self, **kwargs: Any) -> None:
+        await self.coordinator.async_set_device_parameter(
+            self._building_id,
+            self._api_device_id,
+            **{self._desc.api_param: False},
         )
 
 

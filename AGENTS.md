@@ -19,13 +19,14 @@ pip install -r requirements_test.txt
 
 ```
 custom_components/sensorlinx/
-  __init__.py        # entry setup/teardown, stale cleanup, async_remove_config_entry_device (BINARY_SENSOR, SENSOR, WEATHER)
+  __init__.py        # entry setup/teardown, stale cleanup, async_remove_config_entry_device (BINARY_SENSOR, NUMBER, SELECT, SENSOR, SWITCH, WEATHER)
   coordinator.py     # DataUpdateCoordinator — polls buildings + devices, handles re-auth, async_set_device_parameter
   entity.py          # SensorLinxBaseEntity (base class, device_info, availability, _api_device_id)
   sensor.py          # Demand (%) + temperature channel sensors
   binary_sensor.py   # Connected, demand, stages, backup, pumps, valve, relays, WSD
-  switch.py          # DHW enabled, WWSD, hot outdoor reset, CWSD, cold outdoor reset
+  switch.py          # DHW enabled, WWSD, hot outdoor reset, CWSD, cold outdoor reset, permanent HD/CD
   number.py          # DHW/hot/cold tank temperature and differential controls
+  select.py          # Demand priority (heat/cool/auto)
   config_flow.py     # User + reauth + options flows
   weather.py         # building-level WeatherEntity (current + hourly forecast)
   services.py        # set_hvac_mode_priority, set_permanent_demand, + 6 config services
@@ -43,6 +44,7 @@ tests/
   test_binary_sensor.py
   test_switch.py
   test_number.py
+  test_select.py
   test_config_flow.py
   test_integration.py
   test_unload.py
@@ -110,6 +112,9 @@ coordinator.data = {
 | Cold differential control | `{sync_code}_cold_differential_control` |
 | CWSD temp control | `{sync_code}_cwsd_temp_control` |
 | Cold outdoor reset control | `{sync_code}_cold_outdoor_reset_control` |
+| Permanent heat demand switch | `{sync_code}_permanent_hd_switch` |
+| Permanent cool demand switch | `{sync_code}_permanent_cd_switch` |
+| Priority select | `{sync_code}_priority_select` |
 
 ## Key constraints
 

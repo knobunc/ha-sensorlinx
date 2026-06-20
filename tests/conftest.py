@@ -57,6 +57,8 @@ FAKE_DEVICES = [
         "connected": True,
         "dmd": 45,
         "prior": 0,
+        "permHD": False,
+        "permCD": False,
         "wwsd": 80,
         "dot": 45,
         "htDif": 3,

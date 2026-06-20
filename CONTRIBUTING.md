@@ -34,13 +34,17 @@ All three run automatically in CI. With `pre-commit install`, ruff runs on every
 
 ### Adding a new entity
 
-1. Add the entity class to `sensor.py` or `binary_sensor.py`
-2. Add a `_needs(uid)` check and `async_add_entities` call in the platform's
+1. Add the entity class to the appropriate platform file (`sensor.py`,
+   `binary_sensor.py`, `switch.py`, `number.py`, `select.py`, or a new file)
+2. If adding a new platform, add `Platform.X` to `PLATFORMS` in `__init__.py`
+   (alphabetical order)
+3. Add a `_needs(uid)` check and `async_add_entities` call in the platform's
    `_async_add_*` callback
-3. Add the unique ID pattern to the table in `AGENTS.md`
-4. If the entity has a static name: add `_attr_translation_key`, then add the
+4. Add the unique ID pattern to the table in `AGENTS.md`
+5. If the entity has a static name: add `_attr_translation_key`, then add the
    string to both `strings.json` and `translations/en.json`
-5. Add tests in the appropriate `tests/test_*.py` file
+6. Add tests in the appropriate `tests/test_*.py` file
+7. Update entity counts in `tests/test_integration.py`
 
 ### Adding a new service
 

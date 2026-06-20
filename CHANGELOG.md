@@ -2,6 +2,16 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.0] - 2026-06-19
+
+### Added
+- **Permanent demand switches** — `Permanent Heat Demand` and `Permanent Cool Demand` switch entities read `permHD`/`permCD` from the API and write `permanent_hd`/`permanent_cd` booleans.
+- **Demand priority select** — `Demand Priority` select entity (heat / cool / auto) replaces the need to use the `set_hvac_mode_priority` service call for simple mode changes.
+- **Select platform** — new `select.py` platform for enum-style config controls.
+
+### Changed
+- **Documentation** — README.md updated to cover all current entity types (sensors, binary sensors, switches, numbers, selects, weather) and all 8 service calls. CONTRIBUTING.md updated to reference all platform files.
+
 ## [0.10.2] - 2026-06-19
 
 ### Fixed

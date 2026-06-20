@@ -6,7 +6,9 @@ from homeassistant.helpers import entity_registry as er
 from pysensorlinx import Temperature
 
 from custom_components.sensorlinx.switch import (
+    _BOOL_SWITCHES,
     _SENTINEL_SWITCHES,
+    SensorLinxBoolSwitch,
     SensorLinxDHWSwitch,
     SensorLinxSentinelSwitch,
 )
@@ -219,11 +221,90 @@ async def test_is_on_returns_none_when_device_gone(hass, setup_integration):
     sentinel = SensorLinxSentinelSwitch(
         coordinator, "bld-1", "ABC123", _SENTINEL_SWITCHES[0]
     )
+    bool_sw = SensorLinxBoolSwitch(
+        coordinator, "bld-1", "ABC123", _BOOL_SWITCHES[0]
+    )
 
     coordinator.data.clear()
 
     assert dhw.is_on is None
     assert sentinel.is_on is None
+    assert bool_sw.is_on is None
+
+
+# ---------------------------------------------------------------------------
+# Permanent demand switches
+# ---------------------------------------------------------------------------
+
+
+async def test_permanent_hd_off(hass, setup_integration):
+    """permHD=False → off."""
+    state = hass.states.get("switch.eco_controller_permanent_heat_demand")
+    assert state is not None
+    assert state.state == "off"
+
+
+async def test_permanent_hd_on(hass, setup_integration, mock_sensorlinx):
+    _, client = mock_sensorlinx
+    _, coordinator = setup_integration
+
+    client.get_devices.return_value = [{**FAKE_DEVICES[0], "permHD": True}]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert hass.states.get("switch.eco_controller_permanent_heat_demand").state == "on"
+
+
+async def test_permanent_hd_turn_on(hass, setup_integration, mock_sensorlinx):
+    _, client = mock_sensorlinx
+
+    await hass.services.async_call(
+        "switch",
+        "turn_on",
+        {"entity_id": "switch.eco_controller_permanent_heat_demand"},
+        blocking=True,
+    )
+
+    client.set_device_parameter.assert_awaited_once()
+    kw = client.set_device_parameter.call_args.kwargs
+    assert kw["permanent_hd"] is True
+
+
+async def test_permanent_hd_turn_off(hass, setup_integration, mock_sensorlinx):
+    _, client = mock_sensorlinx
+
+    await hass.services.async_call(
+        "switch",
+        "turn_off",
+        {"entity_id": "switch.eco_controller_permanent_heat_demand"},
+        blocking=True,
+    )
+
+    client.set_device_parameter.assert_awaited_once()
+    kw = client.set_device_parameter.call_args.kwargs
+    assert kw["permanent_hd"] is False
+
+
+async def test_permanent_cd_off(hass, setup_integration):
+    """permCD=False → off."""
+    state = hass.states.get("switch.eco_controller_permanent_cool_demand")
+    assert state is not None
+    assert state.state == "off"
+
+
+async def test_permanent_cd_turn_on(hass, setup_integration, mock_sensorlinx):
+    _, client = mock_sensorlinx
+
+    await hass.services.async_call(
+        "switch",
+        "turn_on",
+        {"entity_id": "switch.eco_controller_permanent_cool_demand"},
+        blocking=True,
+    )
+
+    client.set_device_parameter.assert_awaited_once()
+    kw = client.set_device_parameter.call_args.kwargs
+    assert kw["permanent_cd"] is True
 
 
 # ---------------------------------------------------------------------------
@@ -238,6 +319,8 @@ async def test_all_switches_created(hass, setup_integration):
         "switch.eco_controller_hot_outdoor_reset",
         "switch.eco_controller_cold_weather_shutdown",
         "switch.eco_controller_cold_outdoor_reset",
+        "switch.eco_controller_permanent_heat_demand",
+        "switch.eco_controller_permanent_cool_demand",
     ]
     for entity_id in expected:
         state = hass.states.get(entity_id)

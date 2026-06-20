@@ -327,6 +327,22 @@
       },
       "cold_outdoor_reset_switch": {
         "name": "Cold Outdoor Reset"
+      },
+      "permanent_hd_switch": {
+        "name": "Permanent Heat Demand"
+      },
+      "permanent_cd_switch": {
+        "name": "Permanent Cool Demand"
+      }
+    },
+    "select": {
+      "priority_select": {
+        "name": "Demand Priority",
+        "state": {
+          "heat": "Heat",
+          "cool": "Cool",
+          "auto": "Auto"
+        }
       }
     },
     "number": {

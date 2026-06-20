@@ -13,7 +13,8 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
 - Automatic discovery of all buildings and devices linked to your account
 - **Sensor entities** for each device:
   - Overall system demand (%)
-  - Temperature channels (supply, return, outdoor, etc.)
+  - Temperature channels (supply, return, outdoor, etc.) with target and operational state
+  - HVAC priority, config temperatures, and differentials (diagnostic)
 - **Binary sensor entities** for each device:
   - Cloud connectivity status
   - Demand channels (heat active, cool active, etc.)
@@ -21,8 +22,20 @@ See [CHANGELOG.md](CHANGELOG.md) for release history.
   - Backup heat, with `run_time` attribute
   - Supply and load pumps
   - Reversing valve
-  - Relays (one per relay output)
   - Warm and cold weather shutdown
+- **Switch entities** for each device:
+  - DHW enabled, permanent heat demand, permanent cool demand
+  - Warm/cold weather shutdown and hot/cold outdoor reset toggles
+- **Number entities** for each device:
+  - DHW target temperature and differential
+  - Hot tank min/max temperatures, heat differential, WWSD and outdoor reset temperatures
+  - Cold tank min/max temperatures, cold differential, CWSD and cold outdoor reset temperatures
+- **Select entities** for each device:
+  - Demand priority (heat / cool / auto)
+- **Weather entity** per building:
+  - Current conditions (temperature, humidity, pressure, wind, cloud coverage)
+  - Hourly forecast
+- **8 service calls** for writing device parameters
 - Configurable poll interval (30–3600 seconds, default 60)
 - Automatic re-authentication on session expiry
 - Diagnostics support (Settings → Devices & Services → SensorLinx → Download diagnostics)
@@ -66,43 +79,185 @@ After setup, you can adjust the following via **Settings** → **Devices & Servi
 
 ## Entities
 
-For each device, the integration creates:
+### Sensors
 
-| Entity | Type | Description |
-|--------|------|-------------|
-| `{device} Demand` | Sensor | Overall system demand (%) |
-| `{device} {channel}` | Sensor | Temperature per enabled channel |
-| `{device} Connected` | Binary Sensor | Cloud connectivity |
-| `{device} {demand}` | Binary Sensor | Demand channel active (e.g. Heat, Cool) |
-| `{device} Stage N` | Binary Sensor | Heat pump stage active (enabled stages only) |
-| `{device} Backup Heat` | Binary Sensor | Backup heat active (when enabled) |
-| `{device} Supply Pump` | Binary Sensor | Supply pump running |
-| `{device} Load Pump` | Binary Sensor | Load pump running |
-| `{device} Reversing Valve` | Binary Sensor | Reversing valve open (when present) |
-| `{device} Relay N` | Binary Sensor | Relay output state |
-| `{device} Warm Weather Shutdown` | Binary Sensor | WWSD active |
-| `{device} Cold Weather Shutdown` | Binary Sensor | CWSD active |
+| Entity | Description |
+|--------|-------------|
+| `{device} Demand` | Overall system demand (%) |
+| `{device} {channel}` | Temperature per enabled channel |
+| `{device} {channel} Target` | Target (setpoint) temperature per channel |
+| `{device} {channel} State` | Operational state (Heat, Cool, Satisfied, Off) |
+| `{device} HVAC Priority` | Current priority mode (diagnostic) |
+| `{device} WWSD Temperature` | Warm weather shutdown setpoint (diagnostic) |
+| `{device} Outdoor Reset Temperature` | Hot outdoor reset setpoint (diagnostic) |
+| `{device} Min/Max Tank Temperature` | Hot tank min/max setpoints (diagnostic) |
+| `{device} Heat Differential` | Hot tank differential (diagnostic) |
+| `{device} DHW Target Temperature` | DHW setpoint (diagnostic) |
+| `{device} DHW Differential` | DHW differential (diagnostic) |
+| `{device} CWSD Temperature` | Cold weather shutdown setpoint (diagnostic) |
+| `{device} Cold Outdoor Reset Temperature` | Cold outdoor reset setpoint (diagnostic) |
+| `{device} Cold Min/Max Tank Temperature` | Cold tank min/max setpoints (diagnostic) |
+| `{device} Cold Differential` | Cold tank differential (diagnostic) |
 
-Temperature sensors report in your Home Assistant unit system and include `target_temperature` and `state` (e.g. `heating`, `idle`) as extra state attributes when available.
+Temperature sensors report in your Home Assistant unit system and include `target_temperature` and `operation` (e.g. `Heat`, `Idle`) as extra state attributes when available.
 
-Stage and backup heat sensors include a `run_time` attribute (e.g. `"2h 15m"`).
+### Binary sensors
+
+| Entity | Description |
+|--------|-------------|
+| `{device} Connected` | Cloud connectivity (diagnostic) |
+| `{device} {demand} Demand` | Demand channel active (e.g. Heat Demand, Cool Demand) |
+| `{device} Stage N` | Heat pump stage active (enabled stages only; `run_time` attribute) |
+| `{device} Backup Heat` | Backup heat active (`run_time` attribute) |
+| `{device} {pump}` | Pump running (Supply Pump, Load Pump) |
+| `{device} Reversing Valve` | Reversing valve open (diagnostic) |
+| `{device} Warm/Cold Weather Shutdown` | WWSD/CWSD active |
+
+### Switches (config)
+
+| Entity | Description |
+|--------|-------------|
+| `{device} DHW Enabled` | Toggle domestic hot water demand |
+| `{device} Permanent Heat Demand` | Always maintain hot tank target temperature |
+| `{device} Permanent Cool Demand` | Always maintain cold tank target temperature |
+| `{device} Warm Weather Shutdown` | Enable/disable WWSD |
+| `{device} Hot Outdoor Reset` | Enable/disable hot outdoor reset |
+| `{device} Cold Weather Shutdown` | Enable/disable CWSD |
+| `{device} Cold Outdoor Reset` | Enable/disable cold outdoor reset |
+
+### Numbers (config)
+
+| Entity | Description |
+|--------|-------------|
+| `{device} DHW Target Temperature` | DHW tank setpoint |
+| `{device} DHW Differential` | DHW differential |
+| `{device} Min/Max Tank Temperature` | Hot tank min/max setpoints |
+| `{device} Heat Differential` | Hot tank differential |
+| `{device} WWSD Temperature` | Warm weather shutdown threshold |
+| `{device} Outdoor Reset Temperature` | Hot outdoor reset design temperature |
+| `{device} Cold Min/Max Tank Temperature` | Cold tank min/max setpoints |
+| `{device} Cold Differential` | Cold tank differential |
+| `{device} CWSD Temperature` | Cold weather shutdown threshold |
+| `{device} Cold Outdoor Reset Temperature` | Cold outdoor reset design temperature |
+
+Temperature numbers auto-convert between °F and °C. Differential numbers are always in °F.
+
+### Selects (config)
+
+| Entity | Description |
+|--------|-------------|
+| `{device} Demand Priority` | HVAC mode priority (Heat / Cool / Auto) |
+
+### Weather
+
+| Entity | Description |
+|--------|-------------|
+| `{building} Weather` | Current conditions and hourly forecast |
 
 ## Services
 
-The integration registers two services for controlling SensorLinx devices. Both use the **HA device registry ID** to identify the target device — this is easiest to supply via the service call UI, which shows a device picker filtered to SensorLinx devices.
+The integration registers eight services for controlling SensorLinx devices. All use the **HA device registry ID** to identify the target device — easiest to supply via the service call UI, which shows a device picker filtered to SensorLinx devices.
+
+> **Note:** Most parameters also have corresponding switch, number, or select entities that provide direct UI controls. Services are useful for automations or for setting multiple parameters atomically.
+
+> **Tip:** All services log a warning (but still proceed) if the target device reports `connected: false`. The API call may fail silently on the device side in that case.
 
 ### `sensorlinx.set_hvac_mode_priority`
 
 Set the HVAC mode priority for a device.
 
-| Field | Required | Values | Description |
-|-------|----------|--------|-------------|
-| `device_id` | Yes | HA device ID | The SensorLinx device to control |
-| `mode` | Yes | `heat` / `cool` / `auto` | HVAC mode the controller should prioritise |
+| Field | Required | Values |
+|-------|----------|--------|
+| `device_id` | Yes | HA device ID |
+| `mode` | Yes | `heat` / `cool` / `auto` |
 
-**Via the UI (recommended):** Go to **Developer Tools → Services**, pick `sensorlinx.set_hvac_mode_priority`, and use the device picker to select your device.
+### `sensorlinx.set_permanent_demand`
 
-**Via YAML automation:** You need the device's HA device registry ID. Find it under **Settings → Devices & Services → SensorLinx → (your device) → URL** — it is the hex string at the end of the URL.
+Enable or disable permanent heating and/or cooling demand. At least one of `permanent_hd` or `permanent_cd` must be supplied.
+
+| Field | Required | Values |
+|-------|----------|--------|
+| `device_id` | Yes | HA device ID |
+| `permanent_hd` | No | `true` / `false` |
+| `permanent_cd` | No | `true` / `false` |
+
+### `sensorlinx.set_hot_tank_config`
+
+Configure hot tank parameters. At least one optional field must be provided. Temperature values are in °F; use `"off"` to disable WWSD or outdoor reset.
+
+| Field | Required | Values |
+|-------|----------|--------|
+| `device_id` | Yes | HA device ID |
+| `warm_weather_shutdown` | No | °F (34–180) or `"off"` |
+| `outdoor_reset` | No | °F (-40–127) or `"off"` |
+| `differential` | No | °F (2–100) |
+| `min_temp` | No | °F (2–180) |
+| `max_temp` | No | °F (2–180) |
+
+### `sensorlinx.set_cold_tank_config`
+
+Configure cold tank parameters. Same structure as hot tank config.
+
+| Field | Required | Values |
+|-------|----------|--------|
+| `device_id` | Yes | HA device ID |
+| `cold_weather_shutdown` | No | °F (33–119) or `"off"` |
+| `outdoor_reset` | No | °F (0–119) or `"off"` |
+| `differential` | No | °F (2–100) |
+| `min_temp` | No | °F (2–180) |
+| `max_temp` | No | °F (2–180) |
+
+### `sensorlinx.set_dhw_config`
+
+Configure domestic hot water parameters.
+
+| Field | Required | Values |
+|-------|----------|--------|
+| `device_id` | Yes | HA device ID |
+| `enabled` | No | `true` / `false` |
+| `target_temp` | No | °F (33–180) |
+| `differential` | No | °F (2–100) |
+
+### `sensorlinx.set_backup_config`
+
+Configure backup heater parameters.
+
+| Field | Required | Values |
+|-------|----------|--------|
+| `device_id` | Yes | HA device ID |
+| `lag_time` | No | minutes (1–240) or `"off"` |
+| `temp` | No | °F (2–100) or `"off"` |
+| `differential` | No | °F (2–100) or `"off"` |
+| `only_outdoor_temp` | No | °F (-40–127) or `"off"` |
+| `only_tank_temp` | No | °F (33–200) or `"off"` |
+
+### `sensorlinx.set_staging_config`
+
+Configure heat pump staging parameters.
+
+| Field | Required | Values |
+|-------|----------|--------|
+| `device_id` | Yes | HA device ID |
+| `number_of_stages` | No | 1–4 |
+| `two_stage` | No | `true` / `false` |
+| `stage_on_lag_time` | No | minutes (1–240) |
+| `stage_off_lag_time` | No | seconds (1–240) |
+| `rotate_cycles` | No | cycles (1–240) or `"off"` |
+| `rotate_time` | No | hours (1–240) or `"off"` |
+| `off_staging` | No | `true` / `false` |
+
+### `sensorlinx.set_system_config`
+
+Configure general system parameters.
+
+| Field | Required | Values |
+|-------|----------|--------|
+| `device_id` | Yes | HA device ID |
+| `weather_shutdown_lag_time` | No | hours (0–240) |
+| `heat_cool_switch_delay` | No | seconds (30–600) |
+| `wide_priority_differential` | No | `true` / `false` |
+
+### YAML example
 
 ```yaml
 service: sensorlinx.set_hvac_mode_priority
@@ -111,27 +266,7 @@ data:
   mode: heat
 ```
 
-### `sensorlinx.set_permanent_demand`
-
-Enable or disable permanent heating and/or cooling demand. When permanent demand is on, the device always maintains the buffer tank target temperature regardless of external zone demand signals.
-
-| Field | Required | Values | Description |
-|-------|----------|--------|-------------|
-| `device_id` | Yes | HA device ID | The SensorLinx device to control |
-| `permanent_hd` | No | `true` / `false` | Always maintain hot tank target temperature |
-| `permanent_cd` | No | `true` / `false` | Always maintain cold tank target temperature |
-
-At least one of `permanent_hd` or `permanent_cd` must be supplied.
-
-```yaml
-service: sensorlinx.set_permanent_demand
-data:
-  device_id: "a1b2c3d4e5f6a1b2c3d4e5f6a1b2c3d4"
-  permanent_hd: true
-  permanent_cd: false
-```
-
-> **Note:** Both services log a warning (but still proceed) if the target device reports `connected: false`. The API call may fail silently on the device side in that case.
+Find the device registry ID under **Settings → Devices & Services → SensorLinx → (your device) → URL** — it is the hex string at the end of the URL.
 
 ## Device Types
 
@@ -195,12 +330,16 @@ The test suite uses `pytest-homeassistant-custom-component` to run a real (in-me
 |------|----------------|
 | `tests/conftest.py` | Shared fixtures and helpers: fake API data, mocked `Sensorlinx` client, `setup_integration`, `ha_device_id` |
 | `tests/test_coordinator.py` | Data fetching, building/device hierarchy, auth retry, timeout, error handling |
-| `tests/test_sensor.py` | Demand and temperature sensor states, unit conversion, updates, device info |
-| `tests/test_binary_sensor.py` | All binary sensor types: connected, demand, stages, backup, pumps, reversing valve, relays, weather shutdown |
+| `tests/test_sensor.py` | Demand, temperature, target, state, priority, and config sensors |
+| `tests/test_binary_sensor.py` | All binary sensor types: connected, demand, stages, backup, pumps, reversing valve, weather shutdown |
+| `tests/test_switch.py` | DHW, sentinel (WWSD, outdoor reset, CWSD, cold outdoor reset), and permanent demand switches |
+| `tests/test_number.py` | All 12 number entities: values, unit conversion, sentinels, set_value |
+| `tests/test_select.py` | Priority select: read state, select_option, absent key |
 | `tests/test_config_flow.py` | Config flow (auth errors, timeout, duplicate prevention), options flow, reauth form |
 | `tests/test_integration.py` | Full stack: entity/device registry, availability, stale cleanup, live discovery, multi-entry, re-auth, services |
 | `tests/test_unload.py` | Entry lifecycle: unload, client close, service registration/deregistration |
 | `tests/test_diagnostics.py` | Diagnostics output, password redaction, poll settings |
+| `tests/test_weather.py` | Weather entity: current conditions, hourly forecast, condition mapping |
 | `tests/test_edge_cases.py` | Options boundaries, service API errors, auth retry, duplicate sync codes, migration |
 
 ### Adding a test

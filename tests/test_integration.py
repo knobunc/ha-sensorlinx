@@ -79,6 +79,13 @@ async def test_entity_registry_populated_after_setup(hass, setup_integration):
     assert "ABC123_cwsd_temp_control" in unique_ids
     assert "ABC123_cold_outdoor_reset_control" in unique_ids
 
+    # Permanent demand switches
+    assert "ABC123_permanent_hd_switch" in unique_ids
+    assert "ABC123_permanent_cd_switch" in unique_ids
+
+    # Priority select
+    assert "ABC123_priority_select" in unique_ids
+
     # Weather entity
     assert "bld-1_weather" in unique_ids
 
