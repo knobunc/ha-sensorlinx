@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.1] - 2026-06-19
+
+### Fixed
+- **API write operations** — all setter/write operations (switches, numbers, selects, services) failed with HTTP 500 because the MongoDB `_id` was used in API URLs instead of the `syncCode`. The SensorLinx API routes devices by sync code; the `device.get("id")` fallback in `entity.py` and `services.py` always resolved to the wrong identifier.
+
 ## [0.11.0] - 2026-06-19
 
 ### Added

@@ -49,9 +49,6 @@ class SensorLinxBaseEntity(CoordinatorEntity[SensorLinxCoordinator]):
     @property
     def _api_device_id(self) -> str:
         """Return the API-level device ID for write operations."""
-        device = self._get_device()
-        if device is not None:
-            return device.get("id") or self._sync_code
         return self._sync_code
 
     @property

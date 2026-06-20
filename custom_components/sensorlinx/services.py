@@ -189,9 +189,7 @@ def _find_device(
                         device.get("name", sync_code),
                         sync_code,
                     )
-                # Use the API device id if available, fall back to sync_code.
-                device_id = device.get("id") or sync_code
-                return coordinator, building_id, device_id
+                return coordinator, building_id, sync_code
 
     raise ServiceValidationError(
         f"SensorLinx device with sync_code '{sync_code}' was not found in coordinator data. "
