@@ -2,6 +2,11 @@
 
 All notable changes to this project will be documented in this file.
 
+## [0.11.2] - 2026-06-19
+
+### Added
+- **Permanent demand diagnostic sensors** — `Permanent Heat Demand` and `Permanent Cool Demand` binary sensors expose `permHD`/`permCD` as read-only diagnostic entities, complementing the existing writable switches.
+
 ## [0.11.1] - 2026-06-19
 
 ### Fixed
