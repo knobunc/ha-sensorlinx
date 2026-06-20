@@ -122,6 +122,28 @@ async def async_setup_entry(
                         SensorLinxDHWEnabledSensor(coordinator, building_id, sync_code)
                     )
 
+                # Permanent demand
+                if "permHD" in device and _needs(f"{sync_code}_permanent_hd"):
+                    new_entities.append(
+                        SensorLinxPermanentDemandSensor(
+                            coordinator,
+                            building_id,
+                            sync_code,
+                            "permHD",
+                            "permanent_hd",
+                        )
+                    )
+                if "permCD" in device and _needs(f"{sync_code}_permanent_cd"):
+                    new_entities.append(
+                        SensorLinxPermanentDemandSensor(
+                            coordinator,
+                            building_id,
+                            sync_code,
+                            "permCD",
+                            "permanent_cd",
+                        )
+                    )
+
                 # Weather shutdowns (warm / cold)
                 for wsd_key, wsd_data in (device.get("wsd") or {}).items():
                     if _needs(f"{sync_code}_wsd_{wsd_key}"):
@@ -410,3 +432,30 @@ class SensorLinxDHWEnabledSensor(SensorLinxBaseEntity, BinarySensorEntity):
             return None
         val = device.get("dhwOn")
         return _safe_bool(val)
+
+
+class SensorLinxPermanentDemandSensor(SensorLinxBaseEntity, BinarySensorEntity):
+    """Whether permanent heating or cooling demand is active."""
+
+    _attr_entity_category = EntityCategory.DIAGNOSTIC
+
+    def __init__(
+        self,
+        coordinator: SensorLinxCoordinator,
+        building_id: str,
+        sync_code: str,
+        device_key: str,
+        uid_suffix: str,
+    ) -> None:
+        super().__init__(coordinator, building_id, sync_code)
+        self._device_key = device_key
+        self._attr_translation_key = uid_suffix
+        self._attr_unique_id = f"{sync_code}_{uid_suffix}"
+        self._attr_icon = "mdi:fire" if device_key == "permHD" else "mdi:snowflake"
+
+    @property
+    def is_on(self) -> bool | None:
+        device = self._get_device()
+        if device is None:
+            return None
+        return _safe_bool(device.get(self._device_key))

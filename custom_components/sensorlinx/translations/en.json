@@ -310,6 +310,12 @@
       },
       "dhw_enabled": {
         "name": "DHW Enabled"
+      },
+      "permanent_hd": {
+        "name": "Permanent Heat Demand"
+      },
+      "permanent_cd": {
+        "name": "Permanent Cool Demand"
       }
     },
     "switch": {

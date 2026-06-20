@@ -49,6 +49,8 @@ async def test_entity_registry_populated_after_setup(hass, setup_integration):
     assert "ABC123_wsd_wwsd" in unique_ids
     assert "ABC123_wsd_cwsd" in unique_ids
     assert "ABC123_dhw_enabled" in unique_ids
+    assert "ABC123_permanent_hd" in unique_ids
+    assert "ABC123_permanent_cd" in unique_ids
 
     # Config sensor entities — DHW + cold tank
     assert "ABC123_dhw_target_temp" in unique_ids

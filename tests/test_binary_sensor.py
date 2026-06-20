@@ -460,3 +460,45 @@ async def test_dhw_enabled_not_created_when_absent(
     await hass.async_block_till_done()
 
     assert hass.states.get("binary_sensor.eco_controller_dhw_enabled") is None
+
+
+# ---------------------------------------------------------------------------
+# Permanent demand sensors
+# ---------------------------------------------------------------------------
+
+
+async def test_permanent_hd_sensor_created(hass, setup_integration):
+    state = hass.states.get("binary_sensor.eco_controller_permanent_heat_demand")
+    assert state is not None
+    assert state.state == "off"
+
+
+async def test_permanent_cd_sensor_created(hass, setup_integration):
+    state = hass.states.get("binary_sensor.eco_controller_permanent_cool_demand")
+    assert state is not None
+    assert state.state == "off"
+
+
+async def test_permanent_hd_sensor_on(hass, setup_integration, mock_sensorlinx):
+    _, client = mock_sensorlinx
+    _, coordinator = setup_integration
+
+    client.get_devices.return_value = [{**FAKE_DEVICES[0], "permHD": True}]
+    await coordinator.async_refresh()
+    await hass.async_block_till_done()
+
+    assert (
+        hass.states.get("binary_sensor.eco_controller_permanent_heat_demand").state
+        == "on"
+    )
+
+
+async def test_permanent_demand_is_diagnostic(hass, setup_integration):
+    ent_reg = er.async_get(hass)
+    for entity_id in [
+        "binary_sensor.eco_controller_permanent_heat_demand",
+        "binary_sensor.eco_controller_permanent_cool_demand",
+    ]:
+        entry = ent_reg.async_get(entity_id)
+        assert entry is not None, f"{entity_id} not found"
+        assert entry.entity_category == EntityCategory.DIAGNOSTIC
