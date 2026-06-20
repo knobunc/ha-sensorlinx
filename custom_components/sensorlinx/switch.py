@@ -44,7 +44,9 @@ class BoolSwitchDescriptor:
 
 _BOOL_SWITCHES: list[BoolSwitchDescriptor] = [
     BoolSwitchDescriptor("permanent_hd_switch", "permHD", "permanent_hd", "mdi:fire"),
-    BoolSwitchDescriptor("permanent_cd_switch", "permCD", "permanent_cd", "mdi:snowflake"),
+    BoolSwitchDescriptor(
+        "permanent_cd_switch", "permCD", "permanent_cd", "mdi:snowflake"
+    ),
 ]
 
 _SENTINEL_SWITCHES: list[SentinelSwitchDescriptor] = [

@@ -221,9 +221,7 @@ async def test_is_on_returns_none_when_device_gone(hass, setup_integration):
     sentinel = SensorLinxSentinelSwitch(
         coordinator, "bld-1", "ABC123", _SENTINEL_SWITCHES[0]
     )
-    bool_sw = SensorLinxBoolSwitch(
-        coordinator, "bld-1", "ABC123", _BOOL_SWITCHES[0]
-    )
+    bool_sw = SensorLinxBoolSwitch(coordinator, "bld-1", "ABC123", _BOOL_SWITCHES[0])
 
     coordinator.data.clear()
 

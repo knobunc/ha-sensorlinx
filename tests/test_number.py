@@ -298,9 +298,7 @@ async def test_cold_differential_min_max(hass, setup_integration):
 async def test_native_value_returns_none_when_device_gone(hass, setup_integration):
     _, coordinator = setup_integration
 
-    entity = SensorLinxNumberEntity(
-        coordinator, "bld-1", "ABC123", _NUMBER_ENTITIES[0]
-    )
+    entity = SensorLinxNumberEntity(coordinator, "bld-1", "ABC123", _NUMBER_ENTITIES[0])
 
     coordinator.data.clear()
 
