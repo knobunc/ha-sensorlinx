@@ -93,6 +93,8 @@ coordinator.data = {
 | Pump | `{sync_code}_pump_{index}` |
 | Reversing valve | `{sync_code}_reversing_valve` |
 | DHW enabled | `{sync_code}_dhw_enabled` |
+| Permanent heat demand | `{sync_code}_permanent_hd` |
+| Permanent cool demand | `{sync_code}_permanent_cd` |
 | Weather shutdown | `{sync_code}_wsd_{wsd_key}` |
 | Weather | `{building_id}_weather` |
 | DHW switch | `{sync_code}_dhw_switch` |

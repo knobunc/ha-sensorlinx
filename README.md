@@ -111,6 +111,8 @@ Temperature sensors report in your Home Assistant unit system and include `targe
 | `{device} Backup Heat` | Backup heat active (`run_time` attribute) |
 | `{device} {pump}` | Pump running (Supply Pump, Load Pump) |
 | `{device} Reversing Valve` | Reversing valve open (diagnostic) |
+| `{device} Permanent Heat Demand` | Permanent heating demand active (diagnostic) |
+| `{device} Permanent Cool Demand` | Permanent cooling demand active (diagnostic) |
 | `{device} Warm/Cold Weather Shutdown` | WWSD/CWSD active |
 
 ### Switches (config)
